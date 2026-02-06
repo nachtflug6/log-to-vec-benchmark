@@ -1,0 +1,38 @@
+# Configuration for toy example
+
+data:
+  log_file: "data/toy_logs.csv"
+  sequence_length: 100  # Number of log events per sequence
+  stride: 50  # Stride for sliding window
+  train_split: 0.8
+  val_split: 0.1
+  test_split: 0.1
+
+model:
+  type: "autoencoder"  # Options: autoencoder, transformer, contrastive
+  embedding_dim: 128
+  hidden_dim: 256
+  num_layers: 2
+  dropout: 0.1
+
+training:
+  batch_size: 32
+  num_epochs: 50
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  device: "cuda"  # or "cpu"
+  seed: 42
+
+logging:
+  use_wandb: false
+  use_tensorboard: true
+  log_interval: 10
+  checkpoint_dir: "checkpoints/toy_example"
+
+evaluation:
+  metrics:
+    - "reconstruction_error"
+    - "embedding_similarity"
+    - "clustering_score"
+  num_neighbors: 5  # For similarity search
+  num_clusters: 3  # For clustering evaluation

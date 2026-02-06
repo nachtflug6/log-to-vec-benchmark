@@ -1,0 +1,66 @@
+Bootstrap: docker
+From: python:3.10-slim
+
+%labels
+    Author Your Team
+    Version 0.1.0
+    Description Log-to-Vec: Benchmarking embeddings for time-stamped log sequences
+
+%help
+    This container provides the log-to-vec environment for training and evaluating
+    log embedding models. 
+    
+    Usage examples:
+        # Generate toy logs
+        apptainer exec log-to-vec.sif python examples/toy_log_generator.py --scenarios
+        
+        # Train model
+        apptainer exec --nv log-to-vec.sif python examples/train_toy_example.py
+        
+        # With GPU support (--nv flag)
+        apptainer exec --nv log-to-vec.sif python examples/train_toy_example.py
+
+%files
+    requirements.txt /app/requirements.txt
+    setup.py /app/setup.py
+    src /app/src
+    examples /app/examples
+    configs /app/configs
+
+%post
+    # Update and install system dependencies
+    apt-get update && apt-get install -y \
+        git \
+        vim \
+        wget \
+        && rm -rf /var/lib/apt/lists/*
+    
+    # Set working directory
+    cd /app
+    
+    # Install Python dependencies
+    pip install --no-cache-dir -r requirements.txt
+    
+    # Install the package
+    pip install -e .
+    
+    # Create necessary directories
+    mkdir -p /app/data /app/checkpoints /app/outputs
+    
+    # Clean up
+    apt-get clean
+
+%environment
+    export PYTHONUNBUFFERED=1
+    export PYTHONPATH=/app/src:$PYTHONPATH
+    export PATH=/app:$PATH
+
+%runscript
+    echo "Log-to-Vec container"
+    echo "Use 'apptainer exec' to run commands"
+    exec /bin/bash "$@"
+
+%test
+    # Basic test to verify installation
+    python -c "import torch; print(f'PyTorch version: {torch.__version__}')"
+    python -c "import sys; sys.path.insert(0, '/app/src'); from log_to_vec import LogParser; print('log_to_vec import successful')"
