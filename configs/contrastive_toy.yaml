@@ -1,0 +1,32 @@
+data:
+  npz_file: data/processed_features.npz
+  batch_size: 64
+  num_workers: 0
+  pair_mode: neighbor        # or augment later
+  normalize: false
+  return_meta: false
+  train_ratio: 0.7
+  val_ratio: 0.15
+  shuffle_split: true
+
+model:
+  hidden_dim: 128
+  num_layers: 2
+  projection_dim: 64
+  dropout: 0.1
+
+training:
+  seed: 42
+  device: cuda
+  num_epochs: 30
+  learning_rate: 0.001
+  weight_decay: 0.0
+  temperature: 0.1
+
+logging:
+  checkpoint_dir: checkpoints/contrastive_toy
+
+evaluation:
+  eval_every_n_epochs: 5
+  uniformity_t: 2.0
+  uniformity_max_samples: 2048
