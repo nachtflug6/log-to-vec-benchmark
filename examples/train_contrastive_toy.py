@@ -21,12 +21,15 @@ from pathlib import Path as _Path
 sys.path.insert(0, str(_Path(__file__).parent.parent / "src"))
 
 from log_to_vec.data.contrastive_dataset import ContrastiveDataset
+from log_to_vec.data.augmentations import build_augmentation
 from log_to_vec.models.contrastive import LSTMContrastiveEncoder
 from log_to_vec.training.contrastive_losses import nt_xent_loss
 from log_to_vec.evaluation.contrastive_evaluation import (
     compute_contrastive_metrics,
     ContrastiveEvalConfig,
 )
+
+
 
 def split_indices(num_items: int,
                   train_ratio: float,
@@ -58,10 +61,8 @@ def train_epoch(model, dataloader, optimizer, temperature, device):
     num_batches = 0
 
     for batch in tqdm(dataloader, desc="Training"):
-        batch = {k: v.to(device) for k, v in batch.items()}
-
-        x1 = batch["x1"]  # (B, T, D)
-        x2 = batch["x2"]  # (B, T, D)
+        x1 = batch["x1"].to(device, non_blocking=True)  # (B, T, D)
+        x2 = batch["x2"].to(device, non_blocking=True)  # (B, T, D)
 
         optimizer.zero_grad()
 
@@ -87,6 +88,7 @@ def validate_epoch(model, dataloader, temperature, device, eval_cfg: Contrastive
     Validate model for one epoch:
     - compute NT-Xent loss
     - compute mode-agnostic contrastive metrics
+    - export embeddings for later visualization/evaluation
     """
     model.eval()
     total_loss = 0.0
@@ -98,10 +100,8 @@ def validate_epoch(model, dataloader, temperature, device, eval_cfg: Contrastive
     all_h = []
 
     for batch in tqdm(dataloader, desc="Validation"):
-        batch = {k: v.to(device) for k, v in batch.items()}
-
-        x1 = batch["x1"]
-        x2 = batch["x2"]
+        x1 = batch["x1"].to(device, non_blocking=True)
+        x2 = batch["x2"].to(device, non_blocking=True)
 
         out1 = model(x1)
         out2 = model(x2)
@@ -181,13 +181,23 @@ def main():
 
     # Dataset
     print("\nCreating dataset.")
+    # 1) Build augmentation transform
+    transform = None
+    if config["data"].get("pair_mode", "neighbor") == "augment":
+        aug_profile = config["data"].get("augmentation_profile", "log_weak")
+        transform = build_augmentation(aug_profile)
+        print(f"Using augmentation profile: {aug_profile}")
+
+    # 2) Create dataset WITHOUT normalization first
+    # train-only normalization after split.
     base_ds = ContrastiveDataset(
         npz_path=npz_path,
         pair_mode=config["data"].get("pair_mode", "neighbor"),
-        normalize=config["data"].get("normalize", False),
+        transform=transform,
+        normalize=False,  # do not normalize here
         return_meta=config["data"].get("return_meta", False),
-        # If you implement augment later, pass transform here or wrap dataset outside
     )
+
     num_items = len(base_ds)
     print(f"Available items (len(dataset)): {num_items}")
 
@@ -201,6 +211,13 @@ def main():
         shuffle=config["data"].get("shuffle_split", True),
     )
     print(f"Split sizes -> train: {len(train_idx)}, val: {len(val_idx)}, test: {len(test_idx)}")
+
+    # Train-only normalization
+    if config["data"].get("normalize", False):
+        # Compute stats from train split only, then apply to all sequences in base_ds
+        mean, std = base_ds.compute_norm_stats(indices=train_idx)
+        base_ds.apply_norm_stats(mean=mean, std=std)
+        print("Applied train-only z-score normalization to dataset.")
 
     train_ds = Subset(base_ds, train_idx.tolist())
     val_ds = Subset(base_ds, val_idx.tolist())

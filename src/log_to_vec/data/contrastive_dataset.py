@@ -60,7 +60,6 @@ class ContrastiveDataset(Dataset):
         self.N = self.sequences.shape[0]
         self.pair_mode = pair_mode
         self.transform = transform
-        self.normalize = normalize
         self.return_meta = return_meta
 
         if self.pair_mode not in ("neighbor", "augment"):
@@ -73,8 +72,9 @@ class ContrastiveDataset(Dataset):
             raise ValueError("pair_mode='augment' requires a transform function.")
 
         # Optional normalization
-        if self.normalize:
-            self._apply_global_normalization()
+        if normalize:
+            mean, std = self.compute_norm_stats(indices=None)
+            self.apply_norm_stats(mean=mean, std=std)
 
         # Optional metadata
         self.meta = {}
@@ -82,13 +82,37 @@ class ContrastiveDataset(Dataset):
             if key != "sequences":
                 self.meta[key] = data[key]
 
-    def _apply_global_normalization(self):
+    def compute_norm_stats(self, indices=None):
         """
-        Apply global z-score normalization across all sequences.
+        Compute z-score normalization stats.
+        If indices is None -> compute over all sequences.
+        If indices is a list/np array/torch tensor -> compute using only those sequence indices.
+        Returns:
+            mean: Tensor shape (1, 1, D)
+            std:  Tensor shape (1, 1, D)
         """
-        mean = self.sequences.mean(dim=(0, 1), keepdim=True)
-        std = self.sequences.std(dim=(0, 1), keepdim=True) + 1e-8
+        if indices is None:
+            x = self.sequences  # (N, T, D)
+        else:
+            if isinstance(indices, torch.Tensor):
+                idx = indices.long()
+            else:
+                idx = torch.tensor(indices, dtype=torch.long)
+            x = self.sequences.index_select(0, idx)
+
+        mean = x.mean(dim=(0, 1), keepdim=True)
+        std = x.std(dim=(0, 1), keepdim=True) + 1e-8
+        return mean, std
+
+    def apply_norm_stats(self, mean: torch.Tensor, std: torch.Tensor):
+        """
+        Apply precomputed normalization stats to all sequences in the dataset.
+        Args:
+            mean: Tensor shape (1, 1, D)
+            std:  Tensor shape (1, 1, D)
+        """
         self.sequences = (self.sequences - mean) / std
+
 
     def __len__(self) -> int:
         """
