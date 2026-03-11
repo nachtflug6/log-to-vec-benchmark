@@ -1,0 +1,13 @@
+python src/version1/data/preprocess.py --input data/raw/toy_logs.csv --output_dir data/processed/version1 --sequence_length 10 --stride 5 --train_ratio 0.7 --val_ratio 0.15 --test_ratio 0.15
+
+python examples/train_contrastive.py --train_file data/processed/version1/train.npz --val_file data/processed/version1/val.npz --test_file data/processed/version1/test.npz
+
+python src/version1/evaluation/extract_embeddings.py --train_file data/processed/version1/train.npz --val_file data/processed/version1/val.npz --test_file data/processed/version1/test.npz --checkpoint checkpoints/version1/contrastive/best_model.pt --output_dir data/embeddings/version1/contrastive
+
+python src/version1/evaluation/evaluate_embeddings.py --train_embeddings data/embeddings/version1/contrastive/train_embeddings.npz --val_embeddings data/embeddings/version1/contrastive/val_embeddings.npz --test_embeddings data/embeddings/version1/contrastive/test_embeddings.npz --output_dir outputs/version1/evaluation
+
+python src/version1/evaluation/visualize_embeddings.py --train_embeddings data/embeddings/version1/contrastive/train_embeddings.npz --val_embeddings data/embeddings/version1/contrastive/val_embeddings.npz --test_embeddings data/embeddings/version1/contrastive/test_embeddings.npz --output_dir outputs/version1/visualization
+
+
+
+
