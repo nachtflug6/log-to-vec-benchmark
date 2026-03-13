@@ -8,6 +8,25 @@ python src/version1/evaluation/evaluate_embeddings.py --train_embeddings data/em
 
 python src/version1/evaluation/visualize_embeddings.py --train_embeddings data/embeddings/version1/contrastive/train_embeddings.npz --val_embeddings data/embeddings/version1/contrastive/val_embeddings.npz --test_embeddings data/embeddings/version1/contrastive/test_embeddings.npz --output_dir outputs/version1/visualization
 
+# retrieval test
+python src/version1/evaluation/retrieval_test.py --embeddings_file data/embeddings/version1/contrastive/test_embeddings.npz --processed_test_file data/processed/version1/test.npz --event_type_dim 0 --output_dir outputs/version1/retrieval
+
+
+#clustering
+python src/version1/evaluation/clustering_test.py --embeddings_file data/embeddings/version1/contrastive/test_embeddings.npz --processed_test_file data/processed/version1/test.npz --event_type_dim 0 --output_dir outputs/version1/clustering
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
