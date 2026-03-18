@@ -16,16 +16,21 @@ python src/version1/evaluation/retrieval_test.py --embeddings_file data/embeddin
 python src/version1/evaluation/clustering_test.py --embeddings_file data/embeddings/version1/contrastive/test_embeddings.npz --processed_test_file data/processed/version1/test.npz --event_type_dim 0 --output_dir outputs/version1/clustering
 
 
+# Sine
+python examples/generate_sine_logs.py --frequencies 1,2,3,4,5 --blocks_per_class 20 --points_per_block 100 --sampling_rate 50 --output data/raw/sine_logs.csv
+
+python src/version1/data/preprocess.py --input data/raw/sine_logs.csv --output_dir data/processed/sine_v1 --sequence_length 50 --stride 25 --split_mode random --seed 42 --normalize
 
 
+python examples/train_contrastive.py --train_file data/processed/sine_v1/train.npz --val_file data/processed/sine_v1/val.npz --test_file data/processed/sine_v1/test.npz --checkpoint_dir checkpoints/sine_v1/contrastive
 
+python src/version1/evaluation/extract_embeddings.py --train_file data/processed/sine_v1/train.npz --val_file data/processed/sine_v1/val.npz --test_file data/processed/sine_v1/test.npz --checkpoint checkpoints/sine_v1/contrastive/best_model.pt --output_dir data/embeddings/sine_v1/contrastive
 
+python src/version1/evaluation/evaluate_embeddings.py --train_embeddings data/embeddings/sine_v1/contrastive/train_embeddings.npz --val_embeddings data/embeddings/sine_v1/contrastive/val_embeddings.npz --test_embeddings data/embeddings/sine_v1/contrastive/test_embeddings.npz --output_dir outputs/sine_v1/evaluation
 
+python src/version1/evaluation/retrieval_test.py --embeddings_file data/embeddings/sine_v1/contrastive/test_embeddings.npz --processed_test_file data/processed/sine_v1/test.npz --event_type_dim 0 --output_dir outputs/sine_v1/retrieval
 
-
-
-
-
+python src/version1/evaluation/clustering_test.py --embeddings_file data/embeddings/sine_v1/contrastive/test_embeddings.npz --processed_test_file data/processed/sine_v1/test.npz --event_type_dim 0 --output_dir outputs/sine_v1/clustering1
 
 
 

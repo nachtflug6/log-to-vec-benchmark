@@ -162,9 +162,12 @@ class LogPreprocessor:
                 if pd.isna(data_str) or data_str == '' or data_str == '{}':
                     data_dict = {}
                 else:
-                    # Try to parse as dict literal
-                    data_dict = ast.literal_eval(str(data_str))
-            except (ValueError, SyntaxError):
+                    s = str(data_str)
+                    try:
+                        data_dict = json.loads(s)
+                    except Exception:
+                        data_dict = ast.literal_eval(s)
+            except (ValueError, SyntaxError, json.JSONDecodeError, TypeError):
                 data_dict = {}
             
             # Extract numerical values

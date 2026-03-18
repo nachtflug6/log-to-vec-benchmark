@@ -22,19 +22,28 @@ def ensure_dir(path):
     os.makedirs(path, exist_ok=True)
 
 
-def split_sequences(sequences, train_ratio, val_ratio, test_ratio):
-
+def split_sequences(sequences, train_ratio, val_ratio, test_ratio, split_mode="sequential", seed=42
+):
     if not np.isclose(train_ratio + val_ratio + test_ratio, 1.0):
         raise ValueError("train_ratio + val_ratio + test_ratio must equal 1")
 
     n = len(sequences)
 
+    if split_mode not in ["sequential", "random"]:
+        raise ValueError("split_mode must be 'sequential' or 'random'")
+
+    if split_mode == "random":
+        rng = np.random.default_rng(seed)
+        indices = np.arange(n)
+        rng.shuffle(indices)
+        sequences = sequences[indices]
+
     n_train = int(n * train_ratio)
     n_val = int(n * val_ratio)
 
     train = sequences[:n_train]
-    val = sequences[n_train:n_train+n_val]
-    test = sequences[n_train+n_val:]
+    val = sequences[n_train:n_train + n_val]
+    test = sequences[n_train + n_val:]
 
     return train, val, test
 
@@ -77,7 +86,9 @@ def main(args):
         sequences,
         args.train_ratio,
         args.val_ratio,
-        args.test_ratio
+        args.test_ratio,
+        split_mode=args.split_mode,
+        seed=args.seed
     )
 
     print("Train:", train.shape)
@@ -98,7 +109,12 @@ def main(args):
         "num_features": int(feature_matrix.shape[1]),
         "sequence_length": args.sequence_length,
         "stride": args.stride,
-        "num_sequences": int(len(sequences))
+        "num_sequences": int(len(sequences)),
+        "split_mode": args.split_mode,
+        "seed": args.seed,
+        "train_ratio": args.train_ratio,
+        "val_ratio": args.val_ratio,
+        "test_ratio": args.test_ratio
     }
 
     with open(os.path.join(args.output_dir, "meta.json"), "w") as f:
@@ -122,6 +138,13 @@ if __name__ == "__main__":
 
     parser.add_argument("--stride", type=int,
                         default=5)
+
+    parser.add_argument("--split_mode", type=str,
+                        default="sequential",
+                        choices=["sequential", "random"])
+
+    parser.add_argument("--seed", type=int,
+                        default=42)
 
     parser.add_argument("--train_ratio", type=float,
                         default=0.7)
