@@ -1,15 +1,10 @@
 """
 Train a contrastive sequence encoder on processed train/val/test splits.
 
-This script:
-1. Loads processed sequence datasets from .npz files
-2. Builds dataloaders for contrastive learning
-3. Trains an encoder with NT-Xent loss
-4. Evaluates on validation and test sets
-5. Saves the best checkpoint and exported test embeddings
 """
 
 import argparse
+import json
 from pathlib import Path
 
 import numpy as np
@@ -51,9 +46,9 @@ def nt_xent_loss(z1: torch.Tensor, z2: torch.Tensor, temperature: float = 0.1) -
     mask = torch.eye(2 * batch_size, device=z.device, dtype=torch.bool)
     similarity = similarity.masked_fill(mask, -1e9)
 
-    # positive index mapping:
-    # for i in [0, B-1], positive is i+B
-    # for i in [B, 2B-1], positive is i-B
+    # positive mapping:
+    # [0..B-1] -> [B..2B-1]
+    # [B..2B-1] -> [0..B-1]
     targets = torch.arange(2 * batch_size, device=z.device)
     targets = (targets + batch_size) % (2 * batch_size)
 
@@ -76,7 +71,6 @@ def compute_contrastive_metrics(z1: torch.Tensor, z2: torch.Tensor, eps: float =
     z2 = F.normalize(z2, dim=1)
 
     positive_cosine = (z1 * z2).sum(dim=1).mean().item()
-
     alignment = ((z1 - z2) ** 2).sum(dim=1).mean().item()
 
     z = torch.cat([z1, z2], dim=0)
@@ -95,6 +89,49 @@ def compute_contrastive_metrics(z1: torch.Tensor, z2: torch.Tensor, eps: float =
         "uniformity": uniformity,
         "embedding_variance": embedding_variance,
     }
+
+
+def build_dataset(npz_path: str, args, split: str):
+    """
+    Build dataset with split-specific augmentation settings.
+    """
+    if split == "train":
+        return ContrastiveDataset(
+            npz_path=npz_path,
+            mode=args.train_mode,
+            jitter_std=args.jitter_std,
+            scaling_range=(args.scaling_low, args.scaling_high),
+            feature_dropout_rate=args.feature_dropout_rate,
+            time_mask_rate=args.time_mask_rate,
+            apply_augment=args.train_apply_augment,
+            seed=args.seed,
+        )
+
+    if split == "val":
+        return ContrastiveDataset(
+            npz_path=npz_path,
+            mode=args.eval_mode,
+            jitter_std=args.jitter_std,
+            scaling_range=(args.scaling_low, args.scaling_high),
+            feature_dropout_rate=args.feature_dropout_rate,
+            time_mask_rate=args.time_mask_rate,
+            apply_augment=args.eval_apply_augment,
+            seed=args.seed,
+        )
+
+    if split == "test":
+        return ContrastiveDataset(
+            npz_path=npz_path,
+            mode=args.eval_mode,
+            jitter_std=args.jitter_std,
+            scaling_range=(args.scaling_low, args.scaling_high),
+            feature_dropout_rate=args.feature_dropout_rate,
+            time_mask_rate=args.time_mask_rate,
+            apply_augment=args.eval_apply_augment,
+            seed=args.seed,
+        )
+
+    raise ValueError(f"Unknown split: {split}")
 
 
 def train_epoch(model, dataloader, optimizer, temperature, device):
@@ -172,29 +209,79 @@ def validate_epoch(model, dataloader, temperature, device):
 
     z1 = torch.cat(all_z1, dim=0)
     z2 = torch.cat(all_z2, dim=0)
+    h = torch.cat(all_h, dim=0)
 
     metrics = compute_contrastive_metrics(z1, z2)
-
-    embeddings = torch.cat(all_h, dim=0).cpu().numpy()
+    embeddings = h.cpu().numpy().astype(np.float32)
 
     return avg_loss, metrics, embeddings
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Train contrastive encoder on processed toy log splits")
+def save_json(path: Path, data: dict):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
 
-    parser.add_argument("--train_file", type=str, default="data/processed/version1/train.npz")
-    parser.add_argument("--val_file", type=str, default="data/processed/version1/val.npz")
-    parser.add_argument("--test_file", type=str, default="data/processed/version1/test.npz")
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Train contrastive encoder on processed sine-log splits"
+    )
+
+    # ------------------------------------------------------------------
+    # Data
+    # ------------------------------------------------------------------
+    parser.add_argument("--train_file", type=str, required=True)
+    parser.add_argument("--val_file", type=str, required=True)
+    parser.add_argument("--test_file", type=str, required=True)
 
     parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--num_workers", type=int, default=0)
 
+    # ------------------------------------------------------------------
+    # Dataset mode / augmentation
+    # ------------------------------------------------------------------
+    parser.add_argument(
+        "--train_mode",
+        type=str,
+        default="augment",
+        choices=["identity", "augment"],
+        help="Contrastive pair mode for training"
+    )
+    parser.add_argument(
+        "--eval_mode",
+        type=str,
+        default="augment",
+        choices=["identity", "augment"],
+        help="Contrastive pair mode for validation/test"
+    )
+    parser.add_argument(
+        "--train_apply_augment",
+        action="store_true",
+        help="Apply augmentation stochastically in training dataset"
+    )
+    parser.add_argument(
+        "--eval_apply_augment",
+        action="store_true",
+        help="Apply augmentation in validation/test dataset"
+    )
+
+    parser.add_argument("--jitter_std", type=float, default=0.02)
+    parser.add_argument("--scaling_low", type=float, default=0.9)
+    parser.add_argument("--scaling_high", type=float, default=1.1)
+    parser.add_argument("--feature_dropout_rate", type=float, default=0.05)
+    parser.add_argument("--time_mask_rate", type=float, default=0.10)
+
+    # ------------------------------------------------------------------
+    # Model
+    # ------------------------------------------------------------------
     parser.add_argument("--hidden_dim", type=int, default=128)
     parser.add_argument("--num_layers", type=int, default=2)
     parser.add_argument("--projection_dim", type=int, default=64)
     parser.add_argument("--dropout", type=float, default=0.1)
 
+    # ------------------------------------------------------------------
+    # Optimization
+    # ------------------------------------------------------------------
     parser.add_argument("--learning_rate", type=float, default=1e-3)
     parser.add_argument("--weight_decay", type=float, default=1e-5)
     parser.add_argument("--temperature", type=float, default=0.1)
@@ -204,7 +291,10 @@ def parse_args():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--eval_every_n_epochs", type=int, default=5)
 
-    parser.add_argument("--checkpoint_dir", type=str, default="checkpoints/version1/contrastive")
+    # ------------------------------------------------------------------
+    # Output
+    # ------------------------------------------------------------------
+    parser.add_argument("--checkpoint_dir", type=str, default="checkpoints/sine_medium/v2")
 
     return parser.parse_args()
 
@@ -218,14 +308,23 @@ def main():
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    # -------------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # Checkpoint / output directory
+    # ------------------------------------------------------------------
+    checkpoint_dir = Path(args.checkpoint_dir)
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+
+    # Save training config
+    save_json(checkpoint_dir / "train_config.json", vars(args))
+
+    # ------------------------------------------------------------------
     # Datasets
-    # -------------------------------------------------------------------------
+    # ------------------------------------------------------------------
     print("\nLoading processed datasets...")
 
-    train_ds = ContrastiveDataset(args.train_file)
-    val_ds = ContrastiveDataset(args.val_file)
-    test_ds = ContrastiveDataset(args.test_file)
+    train_ds = build_dataset(args.train_file, args, split="train")
+    val_ds = build_dataset(args.val_file, args, split="val")
+    test_ds = build_dataset(args.test_file, args, split="test")
 
     print(f"Train size: {len(train_ds)}")
     print(f"Val size:   {len(val_ds)}")
@@ -238,9 +337,9 @@ def main():
     print(f"Sample sequence shape: {x_sample.shape}")
     print(f"Input feature dimension: {input_dim}")
 
-    # -------------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # Dataloaders
-    # -------------------------------------------------------------------------
+    # ------------------------------------------------------------------
     print("\nCreating dataloaders...")
 
     train_loader = DataLoader(
@@ -271,9 +370,9 @@ def main():
     print(f"Val batches:   {len(val_loader)}")
     print(f"Test batches:  {len(test_loader)}")
 
-    # -------------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # Model
-    # -------------------------------------------------------------------------
+    # ------------------------------------------------------------------
     print("\nCreating contrastive model...")
 
     model = LSTMContrastiveEncoder(
@@ -293,17 +392,12 @@ def main():
         weight_decay=args.weight_decay,
     )
 
-    # -------------------------------------------------------------------------
-    # Checkpoint directory
-    # -------------------------------------------------------------------------
-    checkpoint_dir = Path(args.checkpoint_dir)
-    checkpoint_dir.mkdir(parents=True, exist_ok=True)
-
-    # -------------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # Training
-    # -------------------------------------------------------------------------
+    # ------------------------------------------------------------------
     print("\nStarting training...")
     best_val_loss = float("inf")
+    history = []
 
     for epoch in range(args.num_epochs):
         print(f"\nEpoch {epoch + 1}/{args.num_epochs}")
@@ -325,6 +419,14 @@ def main():
         )
         print(f"Val Loss: {val_loss:.4f}")
 
+        epoch_record = {
+            "epoch": epoch + 1,
+            "train_loss": float(train_loss),
+            "val_loss": float(val_loss),
+        }
+        epoch_record.update({f"val_{k}": float(v) for k, v in val_metrics.items()})
+        history.append(epoch_record)
+
         if (epoch + 1) % args.eval_every_n_epochs == 0 and val_metrics:
             print("\nContrastive Metrics (val):")
             for k, v in val_metrics.items():
@@ -345,20 +447,47 @@ def main():
                     "num_layers": args.num_layers,
                     "projection_dim": args.projection_dim,
                     "dropout": args.dropout,
+                    "train_mode": args.train_mode,
+                    "eval_mode": args.eval_mode,
+                    "jitter_std": args.jitter_std,
+                    "scaling_low": args.scaling_low,
+                    "scaling_high": args.scaling_high,
+                    "feature_dropout_rate": args.feature_dropout_rate,
+                    "time_mask_rate": args.time_mask_rate,
                 },
                 checkpoint_path,
             )
             print(f"Saved best model to {checkpoint_path}")
 
-    # -------------------------------------------------------------------------
+    save_json(checkpoint_dir / "training_history.json", {"history": history})
+
+    # ------------------------------------------------------------------
+    # Load best checkpoint before final test evaluation
+    # ------------------------------------------------------------------
+    print("\nLoading best checkpoint for final test evaluation...")
+    best_checkpoint_path = checkpoint_dir / "best_model.pt"
+    checkpoint = torch.load(best_checkpoint_path, map_location=device)
+
+    best_model = LSTMContrastiveEncoder(
+        input_dim=checkpoint["input_dim"],
+        hidden_dim=checkpoint["hidden_dim"],
+        num_layers=checkpoint["num_layers"],
+        projection_dim=checkpoint["projection_dim"],
+        dropout=checkpoint["dropout"],
+    ).to(device)
+
+    best_model.load_state_dict(checkpoint["model_state_dict"])
+    best_model.eval()
+
+    # ------------------------------------------------------------------
     # Final test evaluation
-    # -------------------------------------------------------------------------
+    # ------------------------------------------------------------------
     print("\n" + "=" * 60)
-    print("Final evaluation on test set")
+    print("Final evaluation on test set (best checkpoint)")
     print("=" * 60)
 
     test_loss, test_metrics, test_embeddings = validate_epoch(
-        model=model,
+        model=best_model,
         dataloader=test_loader,
         temperature=args.temperature,
         device=device,
@@ -370,6 +499,15 @@ def main():
         print("\nContrastive Metrics (test):")
         for k, v in test_metrics.items():
             print(f"  {k}: {v:.6f}")
+
+    test_summary = {
+        "test_loss": float(test_loss),
+        "checkpoint_epoch": int(checkpoint["epoch"] + 1),
+        "checkpoint_val_loss": float(checkpoint["val_loss"]),
+    }
+    test_summary.update({k: float(v) for k, v in test_metrics.items()})
+
+    save_json(checkpoint_dir / "test_metrics.json", test_summary)
 
     if test_embeddings.size != 0:
         embeddings_path = checkpoint_dir / "test_embeddings.npy"

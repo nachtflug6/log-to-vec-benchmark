@@ -141,6 +141,24 @@ class LogPreprocessor:
             else:
                 states.append('UNKNOWN')
         return states
+
+    def _safe_to_float(self, value) -> float:
+        """
+        Safely convert a value to float.
+        Return np.nan for None, empty strings, or invalid values.
+        """
+        if value is None:
+            return np.nan
+
+        if isinstance(value, str):
+            value = value.strip()
+            if value == "" or value.lower() in {"none", "nan", "null"}:
+                return np.nan
+
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return np.nan
     
     def _extract_numerical_features(self, logs_df: pd.DataFrame) -> Dict[str, np.ndarray]:
         """Extract numerical features from data field.
@@ -172,16 +190,16 @@ class LogPreprocessor:
             
             # Extract numerical values
             numerical_features['temperature'].append(
-                data_dict.get('temperature', np.nan)
+                self._safe_to_float(data_dict.get('temperature', np.nan))
             )
             numerical_features['pressure'].append(
-                data_dict.get('pressure', np.nan)
+                self._safe_to_float(data_dict.get('pressure', np.nan))
             )
             numerical_features['position'].append(
-                data_dict.get('position', np.nan)
+                self._safe_to_float(data_dict.get('position', np.nan))
             )
             numerical_features['value'].append(
-                data_dict.get('value', np.nan)
+                self._safe_to_float(data_dict.get('value', np.nan))
             )
             
             # Boolean features (converted to 0/1)
@@ -201,7 +219,10 @@ class LogPreprocessor:
         
         # Convert to numpy arrays
         for key in numerical_features:
-            numerical_features[key] = np.array(numerical_features[key])
+            if key in ['actuator_state', 'threshold_exceeded']:
+                numerical_features[key] = np.array(numerical_features[key], dtype=np.float32)
+            else:
+                numerical_features[key] = np.array(numerical_features[key], dtype=np.float32)
         
         return numerical_features
     
@@ -391,10 +412,32 @@ class LogPreprocessor:
         return self.categorical_decoders[feature_name].get(
             encoded_value, f"UNKNOWN_{encoded_value}"
         )
-    
+
+    def _to_serializable(self, obj):
+        """
+        Recursively convert numpy / pandas scalar types into JSON-serializable
+        native Python types.
+        """
+        if isinstance(obj, dict):
+            return {k: self._to_serializable(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._to_serializable(v) for v in obj]
+        elif isinstance(obj, tuple):
+            return [self._to_serializable(v) for v in obj]
+        elif isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.bool_):
+            return bool(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return obj
+
     def save(self, filepath: str) -> None:
         """Save preprocessor state to file.
-        
+
         Args:
             filepath: Path to save file (.json)
         """
@@ -405,10 +448,12 @@ class LogPreprocessor:
             'feature_names': self.feature_names,
             'fitted': self.fitted,
         }
-        
+
+        serializable_state = self._to_serializable(state)
+
         with open(filepath, 'w') as f:
-            json.dump(state, f, indent=2)
-        
+            json.dump(serializable_state, f, indent=2)
+
         print(f"Preprocessor saved to {filepath}")
     
     def load(self, filepath: str) -> 'LogPreprocessor':

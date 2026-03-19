@@ -32,6 +32,23 @@ python src/version1/evaluation/retrieval_test.py --embeddings_file data/embeddin
 
 python src/version1/evaluation/clustering_test.py --embeddings_file data/embeddings/sine_v1/contrastive/test_embeddings.npz --processed_test_file data/processed/sine_v1/test.npz --event_type_dim 0 --output_dir outputs/sine_v1/clustering1
 
+# sine log generate
+python examples/generate_sine_logs.py --complexity simple --anomaly_rate 0.05 --anomaly_strength 1.0 --error_segment_ratio 0.08
 
+python examples/generate_sine_logs.py --complexity medium --anomaly_rate 0.10 --anomaly_strength 1.2 --error_segment_ratio 0.10
+
+python examples/generate_sine_logs.py --complexity complex --anomaly_rate 0.15 --anomaly_strength 1.5 --error_segment_ratio 0.12
+
+# preprocess sine log
+python src/version1/data/preprocess.py --input data/raw/sine_medium.csv --output_dir data/processed/sine_medium --normalize
+
+# train
+python examples/train_contrastive.py --train_file data/processed/sine_medium/train.npz --val_file data/processed/sine_medium/val.npz --test_file data/processed/sine_medium/test.npz --train_mode identity --eval_mode identity --checkpoint_dir checkpoints/sine_medium_identity
+
+
+
+python examples/train_contrastive.py --train_file data/processed/sine_medium/train.npz --val_file data/processed/sine_medium/val.npz --test_file data/processed/sine_medium/test.npz --train_mode augment --eval_mode augment --train_apply_augment --jitter_std 0.04 --scaling_low 0.9 --scaling_high 1.1 --feature_dropout_rate 0.1 --time_mask_rate 0.15 --checkpoint_dir checkpoints/sine_medium_augment
+
+python src/version1/evaluation/extract_embeddings.py --train_file data/processed/sine_v1/train.npz --val_file data/processed/sine_v1/val.npz --test_file data/processed/sine_v1/test.npz --checkpoint checkpoints/sine_v1/contrastive/best_model.pt --output_dir data/embeddings/sine_v1/contrastive
 
 
