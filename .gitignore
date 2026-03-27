@@ -71,3 +71,4 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+configs/contrastive_toy.yaml
