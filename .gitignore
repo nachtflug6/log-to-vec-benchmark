@@ -59,7 +59,6 @@ runs/
 logs/
 
 # Experiment outputs
-outputs/
 checkpoints/
 results/
 

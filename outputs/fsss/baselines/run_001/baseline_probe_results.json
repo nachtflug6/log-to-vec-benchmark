@@ -1,0 +1,204 @@
+{
+  "train_file": "data/processed/fsss/train_windows.npz",
+  "test_file": "data/processed/fsss/test_windows.npz",
+  "num_train": 1932,
+  "num_test": 414,
+  "window_shape": [
+    48,
+    4
+  ],
+  "results": {
+    "fft": {
+      "train_feature_shape": [
+        1932,
+        56
+      ],
+      "test_feature_shape": [
+        414,
+        56
+      ],
+      "targets": {
+        "mode_id": {
+          "linear": {
+            "accuracy": 0.24154589371980675,
+            "balanced_accuracy": 0.2562829707328462
+          },
+          "rbf": {
+            "accuracy": 0.2584541062801932,
+            "balanced_accuracy": 0.2762981431044091
+          }
+        },
+        "spectral_id": {
+          "linear": {
+            "accuracy": 0.6884057971014492,
+            "balanced_accuracy": 0.6902515265650858
+          },
+          "rbf": {
+            "accuracy": 0.6980676328502415,
+            "balanced_accuracy": 0.6990814928950522
+          }
+        },
+        "coupling_id": {
+          "linear": {
+            "accuracy": 0.3864734299516908,
+            "balanced_accuracy": 0.369515967996848
+          },
+          "rbf": {
+            "accuracy": 0.3695652173913043,
+            "balanced_accuracy": 0.3554597430972497
+          }
+        },
+        "mean_load": {
+          "linear": {
+            "mae": 0.12037496268749237,
+            "rmse": 0.13788372703351406,
+            "r2": -0.08883547782897949
+          },
+          "rbf": {
+            "mae": 0.11905746187709411,
+            "rmse": 0.13790526228279942,
+            "r2": -0.08917559819607068
+          }
+        },
+        "is_transition_window": {
+          "linear": {
+            "accuracy": 0.6521739130434783,
+            "balanced_accuracy": 0.5579080663543118
+          },
+          "rbf": {
+            "accuracy": 0.6521739130434783,
+            "balanced_accuracy": 0.5388122071672787
+          }
+        }
+      }
+    },
+    "summary": {
+      "train_feature_shape": [
+        1932,
+        64
+      ],
+      "test_feature_shape": [
+        414,
+        64
+      ],
+      "targets": {
+        "mode_id": {
+          "linear": {
+            "accuracy": 0.24396135265700483,
+            "balanced_accuracy": 0.27732148690382474
+          },
+          "rbf": {
+            "accuracy": 0.20772946859903382,
+            "balanced_accuracy": 0.23522729700714626
+          }
+        },
+        "spectral_id": {
+          "linear": {
+            "accuracy": 0.6980676328502415,
+            "balanced_accuracy": 0.7005615476801917
+          },
+          "rbf": {
+            "accuracy": 0.7004830917874396,
+            "balanced_accuracy": 0.7006971551674942
+          }
+        },
+        "coupling_id": {
+          "linear": {
+            "accuracy": 0.4057971014492754,
+            "balanced_accuracy": 0.4129796779089603
+          },
+          "rbf": {
+            "accuracy": 0.3864734299516908,
+            "balanced_accuracy": 0.3870957632089114
+          }
+        },
+        "mean_load": {
+          "linear": {
+            "mae": 0.11712704598903656,
+            "rmse": 0.13504124527927946,
+            "r2": -0.044405341148376465
+          },
+          "rbf": {
+            "mae": 0.11749638924664545,
+            "rmse": 0.13652874055603417,
+            "r2": -0.06754058240674676
+          }
+        },
+        "is_transition_window": {
+          "linear": {
+            "accuracy": 0.6473429951690821,
+            "balanced_accuracy": 0.5394453589970876
+          },
+          "rbf": {
+            "accuracy": 0.6545893719806763,
+            "balanced_accuracy": 0.5465746486007345
+          }
+        }
+      }
+    },
+    "raw_flatten": {
+      "train_feature_shape": [
+        1932,
+        192
+      ],
+      "test_feature_shape": [
+        414,
+        192
+      ],
+      "targets": {
+        "mode_id": {
+          "linear": {
+            "accuracy": 0.08454106280193237,
+            "balanced_accuracy": 0.1298867073179733
+          },
+          "rbf": {
+            "accuracy": 0.18357487922705315,
+            "balanced_accuracy": 0.22046250652157404
+          }
+        },
+        "spectral_id": {
+          "linear": {
+            "accuracy": 0.27053140096618356,
+            "balanced_accuracy": 0.2741055327284141
+          },
+          "rbf": {
+            "accuracy": 0.6932367149758454,
+            "balanced_accuracy": 0.6942334360554699
+          }
+        },
+        "coupling_id": {
+          "linear": {
+            "accuracy": 0.38164251207729466,
+            "balanced_accuracy": 0.39438579289286463
+          },
+          "rbf": {
+            "accuracy": 0.3526570048309179,
+            "balanced_accuracy": 0.3632556983787995
+          }
+        },
+        "mean_load": {
+          "linear": {
+            "mae": 0.11378952860832214,
+            "rmse": 0.13266558796262976,
+            "r2": -0.007982134819030762
+          },
+          "rbf": {
+            "mae": 0.1193606284744455,
+            "rmse": 0.13756140595532815,
+            "r2": -0.08375081604569723
+          }
+        },
+        "is_transition_window": {
+          "linear": {
+            "accuracy": 0.5483091787439613,
+            "balanced_accuracy": 0.48265163986323917
+          },
+          "rbf": {
+            "accuracy": 0.6521739130434783,
+            "balanced_accuracy": 0.5299987336963404
+          }
+        }
+      }
+    }
+  }
+}

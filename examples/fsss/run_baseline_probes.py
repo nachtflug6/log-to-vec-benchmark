@@ -63,10 +63,26 @@ def run_classification(
     test_y: np.ndarray,
     kind: str,
 ) -> Dict[str, float]:
+    train_classes = np.unique(train_y)
+    test_classes = np.unique(test_y)
+
+    if len(train_classes) < 2:
+        return {
+            "skipped": True,
+            "skipped_reason": f"train split has only one class: {train_classes.tolist()}",
+        }
+
+    if len(test_classes) < 2:
+        return {
+            "skipped": True,
+            "skipped_reason": f"test split has only one class: {test_classes.tolist()}",
+        }
+
     model = fit_classifier(kind)
     model.fit(train_X, train_y)
     pred = model.predict(test_X)
     return {
+        "skipped": False,
         "accuracy": float(accuracy_score(test_y, pred)),
         "balanced_accuracy": float(balanced_accuracy_score(test_y, pred)),
     }
