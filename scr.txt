@@ -28,3 +28,21 @@ python examples/fsss/run_eval_v2.py --train_embeddings outputs/easy_noise/embedd
 python examples/fsss/run_eval_v2.py --train_embeddings outputs/easy_clean_improve_var/embeddings/train_embeddings.npz --val_embeddings outputs/easy_clean_improve_var/embeddings/val_embeddings.npz --test_embeddings outputs/easy_clean_improve_var/embeddings/test_embeddings.npz --train_split data/processed/easy_clean/train_windows.npz --val_split data/processed/easy_clean/val_windows.npz --test_split data/processed/easy_clean/test_windows.npz --output_dir outputs/eval_v2_improve_var
 
 
+### Moment
+# generate data
+python examples/moment/moment_sine_generator.py --output_dir data/raw/moment_synth_freq  --variant varying_freq
+
+# data check
+python test.py --windows_file data/raw/moment_synth_freq/windows.npz --output_dir outputs/test
+
+# splits
+python examples/fsss/build_fsss_splits.py --raw_dir data/raw/moment_synth_freq --output_dir data/processed/moment_synth_freq
+
+# train
+python examples/fsss/train_ts2vec_style.py --train_file data/processed/moment_synth_freq/train_windows.npz --val_file data/processed/moment_synth_freq/val_windows.npz --output_dir outputs/moment_synth_freq --epochs 80
+# extract
+python examples/fsss/extract_ts2vec_style_embeddings.py --train_file data/processed/moment_synth_freq/train_windows.npz --val_file data/processed/moment_synth_freq/val_windows.npz --test_file data/processed/moment_synth_freq/test_windows.npz --checkpoint outputs/moment_synth_freq/best_model.pt --output_dir outputs/moment_synth_freq/embeddings
+
+python examples/fsss/run_eval_v2.py --train_embeddings outputs/moment_synth_freq/embeddings/train_embeddings.npz --val_embeddings outputs/moment_synth_freq/embeddings/val_embeddings.npz --test_embeddings outputs/moment_synth_freq/embeddings/test_embeddings.npz --train_split data/processed/moment_synth_freq/train_windows.npz --val_split data/processed/moment_synth_freq/val_windows.npz --test_split data/processed/moment_synth_freq/test_windows.npz --output_dir outputs/moment_synth_freq
+
+python test.py --windows_file data/raw/easy_clean/windows.npz --output_dir outputs/test_clean

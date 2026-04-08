@@ -1,0 +1,19 @@
+dataset:
+  data_path: data/ETT/ett_windows.npz
+
+training:
+  batch_size: 32
+  epochs: 20
+  learning_rate: 0.001
+  device: "cuda"
+  seed: 42
+
+model:
+  output_dims: 320
+  hidden_dims: 64
+  depth: 10
+
+output:
+  checkpoint_dir: "checkpoints/"
+  save_embeddings: true
+  embedding_path: "outputs/ts2vec_embeddings.npy"

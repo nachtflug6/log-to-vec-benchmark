@@ -1,0 +1,30 @@
+{
+  "num_samples": 2760,
+  "seq_len": 48,
+  "num_channels": 4,
+  "global_mean": -0.00020649979705922306,
+  "global_std": 0.07660573720932007,
+  "global_min": -1.005418062210083,
+  "global_max": 1.166089415550232,
+  "num_modes": 4,
+  "mode_counts": {
+    "1": 759,
+    "4": 690,
+    "7": 621,
+    "10": 690
+  },
+  "pca_raw_flatten": {
+    "explained_variance_ratio": [
+      0.21998605132102966,
+      0.1854647547006607
+    ],
+    "total_explained_variance_ratio": 0.40545082092285156
+  },
+  "pca_fft": {
+    "explained_variance_ratio": [
+      0.7387741804122925,
+      0.11110150068998337
+    ],
+    "total_explained_variance_ratio": 0.8498756885528564
+  }
+}
