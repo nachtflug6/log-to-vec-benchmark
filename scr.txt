@@ -1,0 +1,125 @@
+# generate raw data
+python examples/fsss/generator_v2.py --variant easy_clean --output-dir data/raw/easy/
+
+python examples/fsss/generator_v2.py --variant easy_clean_with_noise --output-dir data/raw/easy_noise/
+
+# split training data
+python examples/fsss/build_fsss_splits.py --raw_dir data/raw/easy_clean --output_dir data/processed/easy_clean
+
+python examples/fsss/build_fsss_splits.py --raw_dir data/raw/easy_noise --output_dir data/processed/easy_noise
+
+# train
+python examples/fsss/train_ts2vec_style.py --train_file data/processed/easy_clean/train_windows.npz --val_file data/processed/easy_clean/val_windows.npz --output_dir outputs/easy_clean --epochs 80
+
+python examples/fsss/train_ts2vec_style.py --train_file data/processed/easy_noise/train_windows.npz --val_file data/processed/easy_noise/val_windows.npz --output_dir outputs/easy_noise --epochs 80
+
+# extract
+python examples/fsss/extract_ts2vec_style_embeddings.py --train_file data/processed/easy_clean/train_windows.npz --val_file data/processed/easy_clean/val_windows.npz --test_file data/processed/easy_clean/test_windows.npz --checkpoint outputs/easy_clean/best_model.pt --output_dir outputs/easy_clean/embeddings
+
+python examples/fsss/extract_ts2vec_style_embeddings.py --train_file data/processed/easy_noise/train_windows.npz --val_file data/processed/easy_noise/val_windows.npz --test_file data/processed/easy_noise/test_windows.npz --checkpoint outputs/easy_noise/best_model.pt --output_dir outputs/easy_noise/embeddings
+
+python examples/fsss/extract_ts2vec_style_embeddings.py --train_file data/processed/easy_clean/train_windows.npz --val_file data/processed/easy_clean/val_windows.npz --test_file data/processed/easy_clean/test_windows.npz --checkpoint outputs/easy_clean_improve_var/best_model.pt --output_dir outputs/easy_clean_improve_var/embeddings
+
+# evaluate
+python examples/fsss/run_eval_v2.py --train_embeddings outputs/easy_clean/embeddings/train_embeddings.npz --val_embeddings outputs/easy_clean/embeddings/val_embeddings.npz --test_embeddings outputs/easy_clean/embeddings/test_embeddings.npz --train_split data/processed/easy_clean/train_windows.npz --val_split data/processed/easy_clean/val_windows.npz --test_split data/processed/easy_clean/test_windows.npz --output_dir outputs/eval_v2
+
+python examples/fsss/run_eval_v2.py --train_embeddings outputs/easy_noise/embeddings/train_embeddings.npz --val_embeddings outputs/easy_noise/embeddings/val_embeddings.npz --test_embeddings outputs/easy_noise/embeddings/test_embeddings.npz --train_split data/processed/easy_noise/train_windows.npz --val_split data/processed/easy_noise/val_windows.npz --test_split data/processed/easy_noise/test_windows.npz --output_dir outputs/eval_v2_noise
+
+python examples/fsss/run_eval_v2.py --train_embeddings outputs/easy_clean_improve_var/embeddings/train_embeddings.npz --val_embeddings outputs/easy_clean_improve_var/embeddings/val_embeddings.npz --test_embeddings outputs/easy_clean_improve_var/embeddings/test_embeddings.npz --train_split data/processed/easy_clean/train_windows.npz --val_split data/processed/easy_clean/val_windows.npz --test_split data/processed/easy_clean/test_windows.npz --output_dir outputs/eval_v2_improve_var
+
+
+### Moment
+# generate data
+python examples/moment/moment_sine_generator.py --output_dir data/raw/moment_synth_freq  --variant varying_freq
+
+# data check
+python test.py --windows_file data/raw/moment_synth_freq/windows.npz --output_dir outputs/test
+
+# splits
+python examples/fsss/build_fsss_splits.py --raw_dir data/raw/moment_synth_freq --output_dir data/processed/moment_synth_freq
+
+# train
+python examples/fsss/train_ts2vec_style.py --train_file data/processed/moment_synth_freq/train_windows.npz --val_file data/processed/moment_synth_freq/val_windows.npz --output_dir outputs/moment_synth_freq --epochs 80
+# extract
+python examples/fsss/extract_ts2vec_style_embeddings.py --train_file data/processed/moment_synth_freq/train_windows.npz --val_file data/processed/moment_synth_freq/val_windows.npz --test_file data/processed/moment_synth_freq/test_windows.npz --checkpoint outputs/moment_synth_freq/best_model.pt --output_dir outputs/moment_synth_freq/embeddings
+
+python examples/fsss/run_eval_v2.py --train_embeddings outputs/moment_synth_freq/embeddings/train_embeddings.npz --val_embeddings outputs/moment_synth_freq/embeddings/val_embeddings.npz --test_embeddings outputs/moment_synth_freq/embeddings/test_embeddings.npz --train_split data/processed/moment_synth_freq/train_windows.npz --val_split data/processed/moment_synth_freq/val_windows.npz --test_split data/processed/moment_synth_freq/test_windows.npz --output_dir outputs/moment_synth_freq
+
+python test.py --windows_file data/raw/easy_clean/windows.npz --output_dir outputs/test_clean
+
+# moment / official dataset
+python examples/moment/extract_moment_embeddings.py --train_file data/processed/moment_synth_freq/train_windows.npz --val_file data/processed/moment_synth_freq/val_windows.npz  --test_file data/processed/moment_synth_freq/test_windows.npz --output_dir outputs/moment_pretrained_embeddings --model_name AutonLab/MOMENT-1-base --batch_size 64
+# evaluation
+python examples/fsss/run_eval_v2.py --train_embeddings outputs/moment_pretrained_embeddings/train_embeddings.npz --val_embeddings outputs/moment_pretrained_embeddings/val_embeddings.npz --test_embeddings outputs/moment_pretrained_embeddings/test_embeddings.npz --train_split data/processed/moment_synth_freq/train_windows.npz --val_split data/processed/moment_synth_freq/val_windows.npz --test_split data/processed/moment_synth_freq/test_windows.npz --output_dir outputs/moment_synth_freq/res/
+
+# try easy clean using moment
+python examples/moment/extract_moment_embeddings.py --train_file data/processed/easy_clean/train_windows.npz --val_file data/processed/easy_clean/val_windows.npz  --test_file data/processed/easy_clean/test_windows.npz --output_dir outputs/moment_esay_clean --model_name AutonLab/MOMENT-1-base --batch_size 64
+
+python examples/fsss/run_eval_v2.py --train_embeddings outputs/moment_esay_clean/train_embeddings.npz --val_embeddings outputs/moment_esay_clean/val_embeddings.npz --test_embeddings outputs/moment_esay_clean/test_embeddings.npz --train_split data/processed/easy_clean/train_windows.npz --val_split data/processed/easy_clean/val_windows.npz --test_split data/processed/easy_clean/test_windows.npz --output_dir outputs/moment_esay_clean/res/
+
+
+# try easy clean noise using moment
+python examples/moment/extract_moment_embeddings.py --train_file data/processed/easy_noise/train_windows.npz --val_file data/processed/easy_noise/val_windows.npz  --test_file data/processed/easy_noise/test_windows.npz --output_dir outputs/moment_esay_noise --model_name AutonLab/MOMENT-1-base --batch_size 64
+
+python examples/fsss/run_eval_v2.py --train_embeddings outputs/moment_esay_noise/train_embeddings.npz --val_embeddings outputs/moment_esay_noise/val_embeddings.npz --test_embeddings outputs/moment_esay_noise/test_embeddings.npz --train_split data/processed/easy_noise/train_windows.npz --val_split data/processed/easy_noise/val_windows.npz --test_split data/processed/easy_noise/test_windows.npz --output_dir outputs/moment_esay_noise/res/
+
+
+
+#############
+python experiments\rq1_recoverability\scripts\01_generate_moment_frequency_dataset.py --artifact_root experiments\rq1_recoverability\artifacts\datasets
+
+python experiments\rq1_recoverability\scripts\02_create_dataset_splits.py --dataset_dir experiments\rq1_recoverability\artifacts\datasets\moment_freq\raw --output_dir experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42
+
+python experiments\rq1_recoverability\scripts\03_compute_baseline_representations.py --train_file experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\train_windows.npz --test_file experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\test_windows.npz --output_dir experiments\rq1_recoverability\artifacts\runs\moment_freq_compare\baselines
+# train TCN
+python experiments\rq1_recoverability\scripts\04_train_tcn_encoder.py --train_file experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\train_windows.npz --val_file experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\val_windows.npz --output_dir experiments\rq1_recoverability\artifacts\runs\moment_freq_compare\tcn\training
+
+#extract
+python experiments\rq1_recoverability\scripts\05_export_tcn_embeddings.py --train_file experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\train_windows.npz --val_file experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\val_windows.npz --test_file experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\test_windows.npz --checkpoint experiments\rq1_recoverability\artifacts\runs\moment_freq_compare\tcn\training\best_model.pt --output_dir experiments\rq1_recoverability\artifacts\runs\moment_freq_compare\tcn\embeddings
+
+python experiments\rq1_recoverability\scripts\06_evaluate_recoverability.py --train_embeddings experiments\rq1_recoverability\artifacts\runs\moment_freq_compare\tcn\embeddings\train_embeddings.npz --val_embeddings experiments\rq1_recoverability\artifacts\runs\moment_freq_compare\tcn\embeddings\val_embeddings.npz --test_embeddings experiments\rq1_recoverability\artifacts\runs\moment_freq_compare\tcn\embeddings\test_embeddings.npz --train_split experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\train_windows.npz --val_split experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\val_windows.npz --test_split experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\test_windows.npz --output_dir experiments\rq1_recoverability\artifacts\runs\moment_freq_compare\tcn\evaluation
+
+# MOMENT
+python experiments\rq1_recoverability\scripts\05_export_moment_pretrained_embeddings.py --train_file experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\train_windows.npz --val_file experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\val_windows.npz --test_file experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\test_windows.npz --output_dir experiments\rq1_recoverability\artifacts\runs\moment_freq_compare\moment_pretrained\embeddings --model_name AutonLab/MOMENT-1-base
+
+python experiments\rq1_recoverability\scripts\06_evaluate_recoverability.py --train_embeddings experiments\rq1_recoverability\artifacts\runs\moment_freq_compare\moment_pretrained\embeddings\train_embeddings.npz --val_embeddings experiments\rq1_recoverability\artifacts\runs\moment_freq_compare\moment_pretrained\embeddings\val_embeddings.npz --test_embeddings experiments\rq1_recoverability\artifacts\runs\moment_freq_compare\moment_pretrained\embeddings\test_embeddings.npz --train_split experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\train_windows.npz --val_split experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\val_windows.npz --test_split experiments\rq1_recoverability\artifacts\datasets\moment_freq\splits\trajectory_seed42\test_windows.npz --output_dir experiments\rq1_recoverability\artifacts\runs\moment_freq_compare\moment_pretrained\evaluation
+
+
+
+python experiments\rq1_recoverability\scripts\07_run_frs_moment_recoverability.py --dataset_name frs_clean --run_name frs_clean_moment_v2
+
+
+python experiments\rq1_recoverability\scripts\07_run_frs_moment_recoverability.py --dataset_name frs_noisy --run_name frs_noisy_moment_v2
+
+
+
+python experiments\rq1_recoverability\scripts\07_run_frs_moment_recoverability.py --dataset_name frs_clean_v3 --run_name frs_clean_moment_v3
+
+python experiments\rq1_recoverability\scripts\07_run_frs_moment_recoverability.py --dataset_name frs_noisy_v3 --run_name frs_noisy_moment_v3
+
+
+python experiments\rq1_recoverability\scripts\07_run_frs_moment_recoverability.py --dataset_name frs_clean_vnext --run_name frs_clean_moment_vnext
+
+python experiments\rq1_recoverability\scripts\07_run_frs_moment_recoverability.py --dataset_name frs_noisy_vnext --run_name frs_noisy_moment_vnext
+
+#########
+
+python experiments\rq1_recoverability\scripts\09_run_moment_config_ablation.py --dataset_name frs_clean_vnext --baseline_run_name frs_clean_moment_vnext --run_prefix frs_clean_vnext_moment_ablation
+
+
+
+python experiments\rq1_recoverability\scripts\07_run_frs_moment_recoverability.py --dataset_name frs_clean_vnext_long --run_name frs_clean_moment_vnext_long
+
+
+python experiments\rq1_recoverability\scripts\07_run_frs_moment_recoverability.py --dataset_name frs_clean_vnext_long --run_name frs_clean_moment_vnext_long_fair
+
+//////
+python experiments\rq1_recoverability\scripts\09_run_moment_config_ablation.py --dataset_name frs_clean_vnext_long --baseline_run_name frs_clean_moment_vnext_long_fair --run_prefix frs_clean_vnext_long_fair_ablation --device cuda --configs default standardized
+
+python experiments\rq1_recoverability\scripts\10_run_seed_stability.py --dataset_name frs_clean_vnext_long --run_prefix frs_clean_vnext_long_fair_seed_stability --seeds 42 53 64
+
+
+//////nosiy
+python experiments\rq1_recoverability\scripts\07_run_frs_moment_recoverability.py --dataset_name frs_noisy_vnext_long --run_name frs_noisy_moment_vnext_long_fair
+
+python experiments\rq1_recoverability\scripts\10_run_seed_stability.py --dataset_name frs_noisy_vnext_long --run_prefix frs_noisy_vnext_long_fair_seed_stability --seeds 42 53 64

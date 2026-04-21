@@ -1,0 +1,8 @@
+split_by: trajectory
+train_ratio: 0.7
+val_ratio: 0.15
+test_ratio: 0.15
+seed: 42
+requirements:
+  - No trajectory overlap across splits.
+  - Report label coverage for all primary targets after split creation.

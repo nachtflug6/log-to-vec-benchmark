@@ -1,0 +1,97 @@
+{
+  "dataset_name": "frs_noisy_v3",
+  "family": "frs",
+  "family_name": "Factorized Regime Sequence",
+  "config": {
+    "profile": "frs_noisy_v3",
+    "seed": 42,
+    "num_trajectories": 120,
+    "trajectory_length": 320,
+    "latent_dim": 6,
+    "num_channels": 4,
+    "min_segments": 4,
+    "max_segments": 8,
+    "min_dwell": 40,
+    "max_dwell": 104,
+    "window_length": 48,
+    "stride": 12,
+    "transition_margin": 6,
+    "transition_blend": 4,
+    "process_noise_std": 0.02,
+    "observation_noise_std": 0.018,
+    "load_min": 0.8,
+    "load_max": 1.2,
+    "load_drift_std": 0.003,
+    "load_wave_amplitude": 0.05,
+    "num_devices": 5,
+    "device_gain_jitter": 0.035,
+    "device_bias_jitter": 0.03,
+    "cross_channel_mix": 0.01,
+    "channel_dropout_prob": 0.005,
+    "offset_shift_prob": 0.035,
+    "offset_shift_std": 0.015,
+    "load_amplitude_gain": 0.65,
+    "load_frequency_gain": 0.16,
+    "load_noise_gain": 0.32,
+    "coupling_observation_gain": 0.2,
+    "coupling_shared_drive_gain": 0.14,
+    "load_offset_gain": 0.07,
+    "coupling_lag_gain": 0.28,
+    "footprint_version": 3
+  },
+  "num_trajectories": 120,
+  "num_windows": 2760,
+  "window_shape": [
+    48,
+    4
+  ],
+  "transition_window_fraction": 0.7960144877433777,
+  "unique_regime_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "unique_spectral_family_ids": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "unique_coupling_level_ids": [
+    0,
+    1,
+    2
+  ],
+  "spectral_families": [
+    "single_periodic",
+    "damped_periodic",
+    "multi_periodic",
+    "quasi_aperiodic"
+  ],
+  "coupling_levels": [
+    "low",
+    "medium",
+    "high"
+  ],
+  "primary_targets": [
+    "mode_id",
+    "spectral_id",
+    "coupling_id",
+    "is_transition_window",
+    "mean_load"
+  ],
+  "notes": [
+    "Formal synthetic benchmark family for RQ1 recoverability.",
+    "FRS = Factorized Regime Sequence."
+  ],
+  "variant": "frs_noisy_v3"
+}

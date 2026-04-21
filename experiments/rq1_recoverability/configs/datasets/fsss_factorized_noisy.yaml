@@ -1,0 +1,14 @@
+name: fsss_factorized_noisy
+family: fsss
+role: primary_hard
+source_script: examples/fsss/FSSS_generator.py
+variant: factorized_noisy
+primary_targets:
+  - mode_id
+  - spectral_id
+  - coupling_id
+  - is_transition_window
+  - mean_load
+notes:
+  - Harder benchmark for stress-testing latent-factor recoverability.
+  - Compare against factorized_clean under the same evaluation protocol.

@@ -1,0 +1,115 @@
+{
+  "split_by": "trajectory",
+  "seed": 42,
+  "has_hard_leakage": false,
+  "overlap": {
+    "trajectory_overlap": {
+      "train_val": [],
+      "train_test": [],
+      "val_test": []
+    },
+    "device_overlap": {
+      "train_val": [
+        0
+      ],
+      "train_test": [
+        0
+      ],
+      "val_test": [
+        0
+      ]
+    }
+  },
+  "splits": {
+    "train": {
+      "num_windows": 716,
+      "num_trajectories": 716,
+      "num_devices": 1,
+      "mode_counts": {
+        "0": 90,
+        "1": 96,
+        "2": 83,
+        "3": 79,
+        "4": 83,
+        "5": 94,
+        "6": 100,
+        "7": 91
+      },
+      "spectral_counts": {
+        "0": 90,
+        "1": 96,
+        "2": 83,
+        "3": 79,
+        "4": 83,
+        "5": 94,
+        "6": 100,
+        "7": 91
+      },
+      "coupling_counts": {
+        "0": 716
+      },
+      "transition_fraction": 0.0,
+      "mean_load": 0.0
+    },
+    "val": {
+      "num_windows": 153,
+      "num_trajectories": 153,
+      "num_devices": 1,
+      "mode_counts": {
+        "0": 17,
+        "1": 19,
+        "2": 22,
+        "3": 32,
+        "4": 18,
+        "5": 14,
+        "6": 13,
+        "7": 18
+      },
+      "spectral_counts": {
+        "0": 17,
+        "1": 19,
+        "2": 22,
+        "3": 32,
+        "4": 18,
+        "5": 14,
+        "6": 13,
+        "7": 18
+      },
+      "coupling_counts": {
+        "0": 153
+      },
+      "transition_fraction": 0.0,
+      "mean_load": 0.0
+    },
+    "test": {
+      "num_windows": 155,
+      "num_trajectories": 155,
+      "num_devices": 1,
+      "mode_counts": {
+        "0": 21,
+        "1": 13,
+        "2": 23,
+        "3": 17,
+        "4": 27,
+        "5": 20,
+        "6": 15,
+        "7": 19
+      },
+      "spectral_counts": {
+        "0": 21,
+        "1": 13,
+        "2": 23,
+        "3": 17,
+        "4": 27,
+        "5": 20,
+        "6": 15,
+        "7": 19
+      },
+      "coupling_counts": {
+        "0": 155
+      },
+      "transition_fraction": 0.0,
+      "mean_load": 0.0
+    }
+  }
+}

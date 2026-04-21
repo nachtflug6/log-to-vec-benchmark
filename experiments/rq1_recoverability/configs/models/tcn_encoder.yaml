@@ -1,0 +1,6 @@
+name: tcn_encoder
+family: learned_embedding
+status: active_for_moment_sanity_check
+notes:
+  - Current default learned representation for the RQ1 sanity-check pipeline.
+  - Uses the existing version2 TCN hybrid training and embedding export scripts.

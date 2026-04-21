@@ -1,0 +1,103 @@
+{
+  "split_config": {
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "split_by": "trajectory",
+    "seed": 13
+  },
+  "source_metadata": {
+    "dataset_name": "frs_clean",
+    "family": "frs",
+    "family_name": "Factorized Regime Sequence",
+    "config": {
+      "profile": "frs_clean",
+      "seed": 13,
+      "num_trajectories": 12,
+      "trajectory_length": 120,
+      "latent_dim": 6,
+      "num_channels": 4,
+      "min_segments": 4,
+      "max_segments": 7,
+      "min_dwell": 48,
+      "max_dwell": 120,
+      "window_length": 24,
+      "stride": 12,
+      "transition_margin": 6,
+      "transition_blend": 1,
+      "process_noise_std": 0.008,
+      "observation_noise_std": 0.008,
+      "load_min": 0.95,
+      "load_max": 1.05,
+      "load_drift_std": 0.0015,
+      "load_wave_amplitude": 0.025,
+      "num_devices": 2,
+      "device_gain_jitter": 0.015,
+      "device_bias_jitter": 0.015,
+      "cross_channel_mix": 0.006,
+      "channel_dropout_prob": 0.0,
+      "offset_shift_prob": 0.0,
+      "offset_shift_std": 0.0,
+      "load_amplitude_gain": 0.45,
+      "load_frequency_gain": 0.35,
+      "load_noise_gain": 0.3,
+      "coupling_observation_gain": 0.18,
+      "coupling_shared_drive_gain": 0.12
+    },
+    "num_trajectories": 12,
+    "num_windows": 108,
+    "window_shape": [
+      24,
+      4
+    ],
+    "transition_window_fraction": 0.4444444477558136,
+    "unique_regime_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "unique_spectral_family_ids": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "unique_coupling_level_ids": [
+      0,
+      1,
+      2
+    ],
+    "spectral_families": [
+      "single_periodic",
+      "damped_periodic",
+      "multi_periodic",
+      "quasi_aperiodic"
+    ],
+    "coupling_levels": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "primary_targets": [
+      "mode_id",
+      "spectral_id",
+      "coupling_id",
+      "is_transition_window",
+      "mean_load"
+    ],
+    "notes": [
+      "Formal synthetic benchmark family for RQ1 recoverability.",
+      "FRS = Factorized Regime Sequence."
+    ],
+    "variant": "factorized_clean"
+  }
+}

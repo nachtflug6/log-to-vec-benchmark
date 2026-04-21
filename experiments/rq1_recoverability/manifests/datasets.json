@@ -1,0 +1,38 @@
+[
+  {
+    "dataset_name": "moment_freq",
+    "artifact_dir": "experiments\\rq1_recoverability\\artifacts\\datasets\\moment_freq\\raw"
+  },
+  {
+    "dataset_name": "frs_clean",
+    "artifact_dir": "E:\\thesis project\\log-to-vec-benchmark\\experiments\\rq1_recoverability\\artifacts\\datasets\\frs_clean\\raw"
+  },
+  {
+    "dataset_name": "frs_noisy",
+    "artifact_dir": "E:\\thesis project\\log-to-vec-benchmark\\experiments\\rq1_recoverability\\artifacts\\datasets\\frs_noisy\\raw"
+  },
+  {
+    "dataset_name": "frs_clean_v3",
+    "artifact_dir": "E:\\thesis project\\log-to-vec-benchmark\\experiments\\rq1_recoverability\\artifacts\\datasets\\frs_clean_v3\\raw"
+  },
+  {
+    "dataset_name": "frs_noisy_v3",
+    "artifact_dir": "E:\\thesis project\\log-to-vec-benchmark\\experiments\\rq1_recoverability\\artifacts\\datasets\\frs_noisy_v3\\raw"
+  },
+  {
+    "dataset_name": "frs_clean_vnext",
+    "artifact_dir": "E:\\thesis project\\log-to-vec-benchmark\\experiments\\rq1_recoverability\\artifacts\\datasets\\frs_clean_vnext\\raw"
+  },
+  {
+    "dataset_name": "frs_noisy_vnext",
+    "artifact_dir": "E:\\thesis project\\log-to-vec-benchmark\\experiments\\rq1_recoverability\\artifacts\\datasets\\frs_noisy_vnext\\raw"
+  },
+  {
+    "dataset_name": "frs_clean_vnext_long",
+    "artifact_dir": "E:\\thesis project\\log-to-vec-benchmark\\experiments\\rq1_recoverability\\artifacts\\datasets\\frs_clean_vnext_long\\raw"
+  },
+  {
+    "dataset_name": "frs_noisy_vnext_long",
+    "artifact_dir": "E:\\thesis project\\log-to-vec-benchmark\\experiments\\rq1_recoverability\\artifacts\\datasets\\frs_noisy_vnext_long\\raw"
+  }
+]

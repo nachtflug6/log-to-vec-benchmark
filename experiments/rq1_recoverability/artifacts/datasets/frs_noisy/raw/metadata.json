@@ -1,0 +1,94 @@
+{
+  "dataset_name": "frs_noisy",
+  "family": "frs",
+  "family_name": "Factorized Regime Sequence",
+  "config": {
+    "profile": "frs_noisy",
+    "seed": 42,
+    "num_trajectories": 120,
+    "trajectory_length": 320,
+    "latent_dim": 6,
+    "num_channels": 4,
+    "min_segments": 4,
+    "max_segments": 8,
+    "min_dwell": 40,
+    "max_dwell": 104,
+    "window_length": 48,
+    "stride": 12,
+    "transition_margin": 6,
+    "transition_blend": 4,
+    "process_noise_std": 0.022,
+    "observation_noise_std": 0.02,
+    "load_min": 0.82,
+    "load_max": 1.18,
+    "load_drift_std": 0.003,
+    "load_wave_amplitude": 0.05,
+    "num_devices": 6,
+    "device_gain_jitter": 0.05,
+    "device_bias_jitter": 0.04,
+    "cross_channel_mix": 0.015,
+    "channel_dropout_prob": 0.0075,
+    "offset_shift_prob": 0.05,
+    "offset_shift_std": 0.02,
+    "load_amplitude_gain": 0.6,
+    "load_frequency_gain": 0.5,
+    "load_noise_gain": 0.45,
+    "coupling_observation_gain": 0.28,
+    "coupling_shared_drive_gain": 0.2
+  },
+  "num_trajectories": 120,
+  "num_windows": 2760,
+  "window_shape": [
+    48,
+    4
+  ],
+  "transition_window_fraction": 0.7981883883476257,
+  "unique_regime_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "unique_spectral_family_ids": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "unique_coupling_level_ids": [
+    0,
+    1,
+    2
+  ],
+  "spectral_families": [
+    "single_periodic",
+    "damped_periodic",
+    "multi_periodic",
+    "quasi_aperiodic"
+  ],
+  "coupling_levels": [
+    "low",
+    "medium",
+    "high"
+  ],
+  "primary_targets": [
+    "mode_id",
+    "spectral_id",
+    "coupling_id",
+    "is_transition_window",
+    "mean_load"
+  ],
+  "notes": [
+    "Formal synthetic benchmark family for RQ1 recoverability.",
+    "FRS = Factorized Regime Sequence."
+  ],
+  "variant": "factorized_noisy"
+}

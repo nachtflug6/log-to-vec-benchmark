@@ -1,0 +1,16 @@
+name: frs_noisy_vnext
+family: frs
+family_name: Factorized Regime Sequence
+role: formal_hard_mechanistic
+generator_source: experiments/rq1_recoverability/src/rq1/factorized_regime_sequence_generator.py
+generator_entrypoint: experiments/rq1_recoverability/scripts/01_generate_frs_dataset.py
+variant: frs_noisy_vnext
+primary_targets:
+  - mode_id
+  - spectral_id
+  - coupling_id
+  - is_transition_window
+  - mean_load
+notes:
+  - Mechanistic harder benchmark using the same latent footprints as frs_clean_vnext.
+  - adds observation nuisance without turning any one factor into a trivial shortcut.

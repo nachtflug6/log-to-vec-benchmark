@@ -1,0 +1,9 @@
+name: raw_summary
+family: representation_baseline
+description: Summary statistics baseline over fixed windows.
+features:
+  - per-channel mean
+  - per-channel std
+  - per-channel min
+  - per-channel max
+  - optional cross-channel correlation summary
