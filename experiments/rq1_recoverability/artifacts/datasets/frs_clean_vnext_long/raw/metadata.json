@@ -4,7 +4,7 @@
   "family_name": "Factorized Regime Sequence",
   "config": {
     "profile": "frs_clean_vnext",
-    "seed": 64,
+    "seed": 42,
     "num_trajectories": 120,
     "trajectory_length": 640,
     "latent_dim": 6,
@@ -47,7 +47,7 @@
     96,
     4
   ],
-  "transition_window_fraction": 0.7340579628944397,
+  "transition_window_fraction": 0.7492753863334656,
   "unique_regime_ids": [
     0,
     1,

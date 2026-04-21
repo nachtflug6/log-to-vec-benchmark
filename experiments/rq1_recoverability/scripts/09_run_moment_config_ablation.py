@@ -17,16 +17,7 @@ def parse_args() -> argparse.Namespace:
         "--dataset_name",
         type=str,
         required=True,
-        choices=[
-            "frs_clean",
-            "frs_noisy",
-            "frs_clean_v3",
-            "frs_noisy_v3",
-            "frs_clean_vnext",
-            "frs_noisy_vnext",
-            "frs_clean_vnext_long",
-            "frs_noisy_vnext_long",
-        ],
+        choices=["frs_clean_vnext_long", "frs_noisy_vnext_long"],
     )
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--run_prefix", type=str, default=None)

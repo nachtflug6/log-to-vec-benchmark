@@ -123,3 +123,43 @@ python experiments\rq1_recoverability\scripts\10_run_seed_stability.py --dataset
 python experiments\rq1_recoverability\scripts\07_run_frs_moment_recoverability.py --dataset_name frs_noisy_vnext_long --run_name frs_noisy_moment_vnext_long_fair
 
 python experiments\rq1_recoverability\scripts\10_run_seed_stability.py --dataset_name frs_noisy_vnext_long --run_prefix frs_noisy_vnext_long_fair_seed_stability --seeds 42 53 64
+
+
+#######
+python experiments\rq1_recoverability\scripts\07_run_frs_moment_recoverability.py --dataset_name frs_clean_vnext_long --run_name frs_clean_vnext_long_moment_rerun
+
+python experiments\rq1_recoverability\scripts\11_run_ts2vec_recoverability.py --dataset_name frs_clean_vnext_long --run_name frs_clean_vnext_long_ts2vec_e80
+
+python experiments\rq1_recoverability\scripts\11_run_ts2vec_recoverability.py --dataset_name frs_noisy_vnext_long --run_name frs_noisy_vnext_long_ts2vec_e80
+
+
+python experiments\rq1_recoverability\scripts\11_run_ts2vec_recoverability.py `
+  --dataset_name frs_clean_vnext_long `
+  --run_name frs_clean_vnext_long_ts2vec_tuned_e120 `
+  --epochs 120 `
+  --batch_size 256 `
+  --hidden_dim 256 `
+  --embedding_dim 256 `
+  --dropout 0.05 `
+  --lr 5e-4 `
+  --temperature 0.15 `
+  --noise_std 0.015 `
+  --mask_ratio 0.04 `
+  --scale_std 0.05 `
+  --min_crop_ratio 0.80
+
+
+python experiments\rq1_recoverability\scripts\11_run_ts2vec_recoverability.py `
+  --dataset_name frs_noisy_vnext_long `
+  --run_name frs_noisy_vnext_long_ts2vec_tuned_e120 `
+  --epochs 120 `
+  --batch_size 256 `
+  --hidden_dim 256 `
+  --embedding_dim 256 `
+  --dropout 0.05 `
+  --lr 5e-4 `
+  --temperature 0.15 `
+  --noise_std 0.015 `
+  --mask_ratio 0.04 `
+  --scale_std 0.05 `
+  --min_crop_ratio 0.80

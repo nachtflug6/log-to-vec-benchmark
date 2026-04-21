@@ -1,4 +1,4 @@
-"""RQ1 step 4: train the TCN encoder used for the moment sanity-check."""
+"""RQ1 step 4: train the optional legacy TCN encoder."""
 
 from __future__ import annotations
 
@@ -23,8 +23,15 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    root = Path(__file__).resolve().parents[1]
     repo_root = Path(__file__).resolve().parents[3]
-    train_script = repo_root / "examples" / "fsss" / "train_tcn_hybrid.py"
+    train_script = root / "src" / "rq1" / "models" / "train_tcn_hybrid.py"
+
+    if not train_script.exists():
+        raise FileNotFoundError(
+            f"Missing local TCN training script: {train_script}. "
+            "If you need the legacy TCN baseline, copy the original train_tcn_hybrid.py here."
+        )
 
     command = [
         args.python_exe,

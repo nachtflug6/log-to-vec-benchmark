@@ -9,19 +9,12 @@ This directory contains the cleaned and reproducible pipeline for RQ1:
 RQ1 focuses on controlled synthetic datasets and compares simple baselines against learned embeddings under one unified evaluation protocol.
 
 Primary datasets:
-- `moment_freq`: simplest sanity-check dataset
-- `frs_clean`: formal clean benchmark
-- `frs_noisy`: formal harder benchmark
-- `frs_clean_v3`: balanced clean benchmark with more independent latent-factor footprints
-- `frs_noisy_v3`: balanced harder benchmark with the same v3 factor design
-- `frs_clean_vnext`: mechanistic clean benchmark built from latent process, dynamics, and observation layers
-- `frs_noisy_vnext`: mechanistic harder benchmark with the same layered design
-- `frs_clean_vnext_long`: long-window variant of the mechanistic clean benchmark
-- `frs_noisy_vnext_long`: long-window variant of the mechanistic noisy benchmark
+- `frs_clean_vnext_long`: active clean long-context benchmark
+- `frs_noisy_vnext_long`: active noisy long-context benchmark
 
 Dataset family naming:
 - `FRS` = `Factorized Regime Sequence`
-- The formal FRS generator now lives under `src/rq1/factorized_regime_sequence_generator.py`
+- The formal FRS generator now lives under `src/rq1/generation/factorized_regime_sequence_generator.py`
 - Compatibility aliases (`mode_id`, `spectral_id`, `coupling_id`) are still emitted so the shared evaluation code can be reused
 
 Primary representations:
@@ -46,10 +39,11 @@ Primary evaluation views:
 
 - `configs/`: dataset, split, model, baseline, and evaluation configs
 - `scripts/`: runnable pipeline entrypoints
-- `src/rq1/`: reusable RQ1-specific helpers
+- `src/rq1/`: reusable RQ1-specific helpers, grouped by `generation/`, `data/`, `baselines/`, `evaluation/`, `models/`, and `utils/`
 - `artifacts/`: generated datasets, runs, embeddings, and metrics
 - `reports/`: tables, figures, and experiment notes for thesis writing
 - `manifests/`: lightweight registry files for datasets and runs
+- `SELF_CONTAINED_DEPENDENCIES.md`: local dependency map and restore checklist for legacy files
 
 ## Intended Run Order
 
@@ -66,5 +60,5 @@ Primary evaluation views:
 - Keep all RQ1 experiments under this directory to avoid mixing with earlier exploratory outputs.
 - Prefer trajectory-level splits for synthetic sequence windows.
 - Only compare methods when they use the same split and the same valid targets.
-- Start with `moment_freq` as a sanity check before moving to the formal `FRS` datasets.
+- Treat `frs_clean_vnext_long` and `frs_noisy_vnext_long` as the active RQ1 benchmark datasets.
 - Use the workspace virtual environment Python at `venv\Scripts\python.exe` for all end-to-end runs in this directory.

@@ -30,8 +30,9 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    root = Path(__file__).resolve().parents[1]
     repo_root = Path(__file__).resolve().parents[3]
-    baseline_script = repo_root / "examples" / "fsss" / "run_baseline_probes.py"
+    baseline_script = root / "src" / "rq1" / "baselines" / "run_baseline_probes.py"
 
     command = [
         args.python_exe,

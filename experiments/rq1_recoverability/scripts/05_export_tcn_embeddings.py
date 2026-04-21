@@ -22,8 +22,15 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    root = Path(__file__).resolve().parents[1]
     repo_root = Path(__file__).resolve().parents[3]
-    extract_script = repo_root / "examples" / "fsss" / "extract_tcn_embeddings.py"
+    extract_script = root / "src" / "rq1" / "models" / "extract_tcn_embeddings.py"
+
+    if not extract_script.exists():
+        raise FileNotFoundError(
+            f"Missing local TCN embedding export script: {extract_script}. "
+            "If you need the legacy TCN baseline, copy the original extract_tcn_embeddings.py here."
+        )
 
     command = [
         args.python_exe,

@@ -1,0 +1,59 @@
+{
+  "train_file": "experiments\\rq1_recoverability\\artifacts\\datasets\\frs_clean_vnext_long\\splits\\trajectory_seed42\\train_windows.npz",
+  "test_file": "experiments\\rq1_recoverability\\artifacts\\datasets\\frs_clean_vnext_long\\splits\\trajectory_seed42\\test_windows.npz",
+  "num_train": 1932,
+  "num_test": 414,
+  "window_shape": [
+    96,
+    4
+  ],
+  "results": {
+    "summary": {
+      "train_feature_shape": [
+        1932,
+        20
+      ],
+      "test_feature_shape": [
+        414,
+        20
+      ],
+      "targets": {
+        "mode_id": {
+          "linear": {
+            "skipped": false,
+            "accuracy": 0.357487922705314,
+            "balanced_accuracy": 0.3789711088071199
+          }
+        },
+        "spectral_id": {
+          "linear": {
+            "skipped": false,
+            "accuracy": 0.5917874396135265,
+            "balanced_accuracy": 0.5984103568662392
+          }
+        },
+        "coupling_id": {
+          "linear": {
+            "skipped": false,
+            "accuracy": 0.5797101449275363,
+            "balanced_accuracy": 0.6023957078589004
+          }
+        },
+        "is_transition_window": {
+          "linear": {
+            "skipped": false,
+            "accuracy": 0.7608695652173914,
+            "balanced_accuracy": 0.5069264069264069
+          }
+        },
+        "mean_load": {
+          "linear": {
+            "mae": 0.051664143800735474,
+            "rmse": 0.05924629792020876,
+            "r2": 0.06310498714447021
+          }
+        }
+      }
+    }
+  }
+}

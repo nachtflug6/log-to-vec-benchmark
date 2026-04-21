@@ -7,9 +7,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
-
-from version2.data.fsss_data import (
+from rq1.data.fsss_data import (
     SplitConfig,
     format_report,
     leakage_report,

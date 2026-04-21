@@ -25,8 +25,9 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    root = Path(__file__).resolve().parents[1]
     repo_root = Path(__file__).resolve().parents[3]
-    extract_script = repo_root / "examples" / "moment" / "extract_moment_embeddings.py"
+    extract_script = root / "src" / "rq1" / "models" / "extract_moment_embeddings.py"
 
     command = [
         args.python_exe,

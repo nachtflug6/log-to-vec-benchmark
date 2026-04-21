@@ -1,0 +1,26 @@
+{
+  "config": {
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "split_by": "trajectory",
+    "seed": 123
+  },
+  "split_key": "trajectory_id",
+  "window_counts": {
+    "train": 1932,
+    "val": 414,
+    "test": 414
+  },
+  "group_counts": {
+    "train": 84,
+    "val": 18,
+    "test": 18
+  },
+  "group_overlaps": {
+    "train_val": [],
+    "train_test": [],
+    "val_test": []
+  },
+  "has_group_leakage": false
+}

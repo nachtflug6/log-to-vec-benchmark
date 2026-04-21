@@ -7,9 +7,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
-
-from version2.evaluation.eval_v2 import (
+from rq1.evaluation.eval_v2 import (
     load_embeddings,
     load_split,
     run_full_evaluation_suite,
