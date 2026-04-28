@@ -53,6 +53,24 @@ Date initialized: 2026-04-28
 - Remaining vs `origin/version2`: 154 files (almost entirely generated `outputs/**` plus scratch leftovers)
 - Remaining vs `origin/experiment1`: 124 files (dominated by `experiments/rq1_recoverability/artifacts/**`)
 
+## Finalization Decision (2026-04-28)
+
+Decision: finalize integration branch with no further merges in this pass.
+
+Rationale:
+- Core code and configuration paths needed for unified development are now integrated.
+- Remaining branch deltas are primarily generated artifacts, legacy subtree content, or scratch files.
+- Source branches remain available for selective retrieval if specific files are needed later.
+
+Deferred by design:
+- `src/version1/**`
+- `outputs/**`
+- `experiments/rq1_recoverability/artifacts/**`
+- `scr.txt`, `test.py`, `baseline_features.py`
+
+Operational note:
+- Smoke tests requiring full ML dependencies are still pending in this shell environment.
+
 ## Branch Comparison Snapshot (2026-04-28)
 
 ### Commits not yet integrated
