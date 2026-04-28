@@ -45,6 +45,13 @@ Date initialized: 2026-04-28
 - Started selective integration pass from `version2` (code/config only).
 - Pulled into working tree: `configs/ts2vec_ett.yaml`, `examples/fsss/**`, `examples/moment/moment_sine_generator.py`, `src/moment/data/**`, and `src/version2/**`.
 - Explicitly deferred in first pass: `outputs/**`, root scratch files (`scr.txt`, `test.py`), and other generated artifacts.
+- Created first integration commit: `3e2daf0` with code/config/docs scaffolding from all three source branches.
+
+### Post-commit remaining deltas
+
+- Remaining vs `origin/contrastive-phase1`: 10 files (all `src/version1/**` legacy scope)
+- Remaining vs `origin/version2`: 154 files (almost entirely generated `outputs/**` plus scratch leftovers)
+- Remaining vs `origin/experiment1`: 124 files (dominated by `experiments/rq1_recoverability/artifacts/**`)
 
 ## Branch Comparison Snapshot (2026-04-28)
 
