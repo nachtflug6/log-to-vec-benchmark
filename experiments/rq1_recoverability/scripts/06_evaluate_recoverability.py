@@ -24,6 +24,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--val_split", type=str, required=True)
     parser.add_argument("--test_split", type=str, required=True)
     parser.add_argument("--output_dir", type=str, required=True)
+    parser.add_argument(
+        "--skip_visualizations",
+        action="store_true",
+        help="Disable PCA/t-SNE embedding plots.",
+    )
+    parser.add_argument(
+        "--visualization_max_points",
+        type=int,
+        default=1500,
+        help="Maximum number of test samples used for embedding plots.",
+    )
     return parser.parse_args()
 
 
@@ -31,6 +42,7 @@ def main() -> None:
     args = parse_args()
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    visualization_dir = None if args.skip_visualizations else (output_dir / "visualizations")
 
     summary = run_full_evaluation_suite(
         train_embeddings=load_embeddings(args.train_embeddings),
@@ -39,9 +51,13 @@ def main() -> None:
         train_split=load_split(args.train_split),
         val_split=load_split(args.val_split),
         test_split=load_split(args.test_split),
+        visualization_dir=visualization_dir,
+        visualization_max_points=args.visualization_max_points,
     )
     save_json(output_dir / "recoverability_summary.json", summary)
     print(f"Saved evaluation summary to: {output_dir / 'recoverability_summary.json'}")
+    if visualization_dir is not None:
+        print(f"Saved embedding plots to: {visualization_dir}")
 
 
 if __name__ == "__main__":

@@ -729,6 +729,7 @@ def run_full_evaluation_suite(
     test_split: Dict[str, np.ndarray],
     encoder_fn=None,
     visualization_dir: str | Path | None = None,
+    visualization_max_points: int = 1500,
 ) -> Dict[str, Any]:
     check_alignment(train_embeddings, train_split, "train")
     check_alignment(val_embeddings, val_split, "val")
@@ -766,6 +767,7 @@ def run_full_evaluation_suite(
             split=test_split,
             output_dir=visualization_dir,
             prefix="test",
+            max_points=visualization_max_points,
         )
 
     return summary
