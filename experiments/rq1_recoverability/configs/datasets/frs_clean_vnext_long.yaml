@@ -1,0 +1,21 @@
+name: frs_clean_vnext_long
+family: frs
+family_name: Factorized Regime Sequence
+role: formal_clean_mechanistic_long_context
+generator_source: experiments/rq1_recoverability/src/rq1/factorized_regime_sequence_generator.py
+generator_entrypoint: experiments/rq1_recoverability/scripts/01_generate_frs_dataset.py
+variant: frs_clean_vnext_long
+base_profile: frs_clean_vnext
+window_length: 96
+stride: 24
+trajectory_length: 640
+primary_targets:
+  - mode_id
+  - spectral_id
+  - coupling_id
+  - is_transition_window
+  - mean_load
+notes:
+  - Long-window variant of the mechanistic clean benchmark.
+  - Intended for MOMENT context-length ablations without changing the latent world design.
+  - Uses longer trajectories so the longer window does not collapse the split into mostly transition windows.

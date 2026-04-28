@@ -21,6 +21,38 @@ from log_to_vec.data.log_parser import LogParser
 from log_to_vec.data.dataset import create_dataloaders
 from log_to_vec.models.autoencoder import LSTMAutoencoder, TransformerAutoencoder
 from log_to_vec.evaluation.metrics import reconstruction_accuracy, EvaluationSuite
+from log_to_vec.mode_change import compute_change_scores, detect_change_points, cluster_segments
+from log_to_vec.evaluation.mode_change_metrics import mode_change_metrics
+
+
+def evaluate_mode_change(embeddings, config):
+    """Run optional baseline mode-change evaluation on embeddings."""
+    mode_cfg = config.get("mode_change", {})
+    if not mode_cfg.get("enabled", False):
+        return {}
+
+    scores = compute_change_scores(
+        embeddings,
+        window_size=mode_cfg.get("window_size", 5),
+    )
+    change_points = detect_change_points(
+        scores,
+        threshold_scale=mode_cfg.get("threshold_scale", 2.5),
+        min_distance=mode_cfg.get("min_distance", 3),
+    )
+    clustered = cluster_segments(
+        embeddings,
+        change_points,
+        num_clusters=mode_cfg.get("num_clusters", 3),
+        random_state=config["training"].get("seed", 42),
+    )
+
+    metrics = mode_change_metrics(
+        scores=scores,
+        change_points=change_points,
+        segment_labels=clustered["segment_labels"],
+    )
+    return metrics
 
 
 def train_epoch(model, dataloader, optimizer, criterion, device):
@@ -221,6 +253,12 @@ def main():
             eval_metrics = evaluator.evaluate(val_embeddings)
             for metric_name, value in eval_metrics.items():
                 print(f"  {metric_name}: {value:.4f}")
+
+            mode_metrics = evaluate_mode_change(val_embeddings, config)
+            if mode_metrics:
+                print("\nMode-change metrics:")
+                for metric_name, value in mode_metrics.items():
+                    print(f"  {metric_name}: {value:.4f}")
         
         # Save best model
         if val_loss < best_val_loss:
@@ -250,6 +288,12 @@ def main():
     print("\nTest Embedding Metrics:")
     for metric_name, value in eval_metrics.items():
         print(f"  {metric_name}: {value:.4f}")
+
+    mode_metrics = evaluate_mode_change(test_embeddings, config)
+    if mode_metrics:
+        print("\nTest Mode-Change Metrics:")
+        for metric_name, value in mode_metrics.items():
+            print(f"  {metric_name}: {value:.4f}")
     
     # Save embeddings
     embeddings_path = checkpoint_dir / "test_embeddings.npy"

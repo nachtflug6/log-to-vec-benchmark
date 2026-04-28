@@ -1,0 +1,5 @@
+name: pca
+family: representation_baseline
+description: PCA over baseline features or flattened windows.
+input: raw_summary
+n_components: 64

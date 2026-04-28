@@ -36,3 +36,10 @@ evaluation:
     - "clustering_score"
   num_neighbors: 5  # For similarity search
   num_clusters: 3  # For clustering evaluation
+
+mode_change:
+  enabled: false
+  window_size: 5
+  threshold_scale: 2.5
+  min_distance: 3
+  num_clusters: 3

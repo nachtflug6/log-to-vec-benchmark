@@ -1,0 +1,10 @@
+[
+  {
+    "dataset_name": "frs_noisy_vnext_long",
+    "artifact_dir": "experiments\\rq1_recoverability\\artifacts\\_selfcheck\\active_datasets\\frs_noisy_vnext_long\\raw"
+  },
+  {
+    "dataset_name": "frs_clean_vnext_long",
+    "artifact_dir": "E:\\thesis project\\log-to-vec-benchmark\\experiments\\rq1_recoverability\\artifacts\\datasets\\frs_clean_vnext_long\\raw"
+  }
+]

@@ -1,0 +1,5 @@
+name: tcn_encoder
+family: learned_embedding
+status: legacy_optional
+notes:
+  - Legacy optional baseline. Local copies should live under experiments/rq1_recoverability/src/rq1/models/.

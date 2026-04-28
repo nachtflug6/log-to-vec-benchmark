@@ -31,6 +31,8 @@ Detailed guidance for students is in [STUDENT_GUIDE.md](STUDENT_GUIDE.md).
 - **Data Generation**: Realistic PLC-like log generator for testing
 - **Multiple Model Architectures**: LSTM autoencoders, Transformer autoencoders, contrastive models
 - **Comprehensive Evaluation**: Metrics for reconstruction, similarity, clustering, and retrieval
+- **Mode-Change Baseline**: Optional unsupervised change-point and segment clustering scaffold for numerical time-series logs
+- **Structured Experiment Registry**: Schema and templates for reproducible run metadata
 - **Flexible Configuration**: YAML-based configuration system
 - **Containerization**: Docker and Apptainer support for reproducibility and HPC deployment
 
@@ -121,6 +123,18 @@ python examples/train_toy_example.py --config configs/toy_example.yaml
 python examples/train_classifier.py --input data/toy_logs.csv
 ```
 
+## Canonical Training Entrypoints
+
+Use these scripts as the primary entrypoints in the unified branch:
+
+- Reconstruction baseline: [examples/train_toy_example.py](examples/train_toy_example.py)
+- Contrastive baseline (config-driven): [examples/train_contrastive_toy.py](examples/train_contrastive_toy.py)
+- Version2 hybrid baseline: [examples/fsss/train_tcn_hybrid.py](examples/fsss/train_tcn_hybrid.py)
+
+Compatibility script retained for older split-based workflows:
+
+- [examples/train_contrastive.py](examples/train_contrastive.py)
+
 ## How to Add a New Model
 
 1. **Create a model file** in [src/log_to_vec/models](src/log_to_vec/models) (e.g., `my_model.py`).
@@ -203,6 +217,36 @@ All experiments are configured via YAML files in the `configs/` directory. Key c
 - **training**: Training settings (batch size, learning rate, epochs)
 - **evaluation**: Evaluation metrics and parameters
 - **logging**: Logging and checkpointing settings
+- **mode_change**: Optional change-point and segment clustering baseline settings
+
+## Structured Experiment Tracking
+
+Use the registry files under [experiments/registry](experiments/registry) to log each run in a machine-readable format.
+
+- Schema: [experiments/registry/schema.json](experiments/registry/schema.json)
+- Metadata template: [experiments/registry/templates/run_metadata.template.json](experiments/registry/templates/run_metadata.template.json)
+- Run artifacts directory: [experiments/registry/runs/.gitkeep](experiments/registry/runs/.gitkeep)
+
+Human-readable logs and merge decisions:
+
+- Experiment log: [docs/experiment_log.md](docs/experiment_log.md)
+- Branch merge ledger: [docs/merge_ledger.md](docs/merge_ledger.md)
+- Distilled findings: [docs/research_findings.md](docs/research_findings.md)
+
+## Alvis Cluster Helpers
+
+Use helper scripts to standardize experiment execution on alvis1:
+
+```bash
+# Submit a SLURM job
+scripts/alvis_submit.sh scripts/slurm/smoke_train.slurm
+
+# Check job status
+scripts/alvis_status.sh
+
+# Collect artifacts from alvis1
+scripts/alvis_collect.sh /path/on/alvis/results ./results
+```
 
 ## Development
 

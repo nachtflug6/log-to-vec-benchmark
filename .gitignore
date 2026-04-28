@@ -63,6 +63,18 @@ outputs/
 checkpoints/
 results/
 
+# Deferred branch artifacts (kept out of unified code branch)
+experiments/rq1_recoverability/artifacts/
+
+# Scratch files from feature branches
+scr.txt
+test.py
+baseline_features.py
+
+# Structured experiment run artifacts
+experiments/registry/runs/*.json
+!experiments/registry/runs/.gitkeep
+
 # OS
 .DS_Store
 Thumbs.db

@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LogToVecExperimentRun",
+  "type": "object",
+  "required": [
+    "run_id",
+    "date",
+    "branch",
+    "commit_sha",
+    "objective",
+    "dataset",
+    "label_regime",
+    "config_path",
+    "seeds",
+    "environment",
+    "status"
+  ],
+  "properties": {
+    "run_id": { "type": "string" },
+    "date": { "type": "string" },
+    "branch": { "type": "string" },
+    "commit_sha": { "type": "string" },
+    "objective": { "type": "string" },
+    "dataset": { "type": "string" },
+    "label_regime": { "type": "string" },
+    "config_path": { "type": "string" },
+    "seeds": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "minItems": 1
+    },
+    "environment": {
+      "type": "string",
+      "enum": ["local", "alvis1"]
+    },
+    "container": { "type": "string" },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": { "type": ["number", "string", "null"] }
+    },
+    "artifacts_path": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["planned", "running", "success", "failed"]
+    },
+    "notes": { "type": "string" }
+  }
+}

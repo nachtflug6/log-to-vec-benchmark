@@ -1,0 +1,22 @@
+{
+  "run_id": "EXP-YYYYMMDD-XXX",
+  "date": "YYYY-MM-DD",
+  "branch": "unified-mode-change-benchmark",
+  "commit_sha": "<git-sha>",
+  "objective": "mode-change baseline benchmark",
+  "dataset": "data/toy_logs.csv",
+  "label_regime": "unlabeled_train_synthetic_eval",
+  "config_path": "configs/toy_example.yaml",
+  "seeds": [42],
+  "environment": "local",
+  "container": "log-to-vec.sif",
+  "metrics": {
+    "test_loss": null,
+    "test_accuracy": null,
+    "mode_change/num_change_points": null,
+    "mode_change/mean_change_score": null
+  },
+  "artifacts_path": "results/EXP-YYYYMMDD-XXX",
+  "status": "planned",
+  "notes": ""
+}
