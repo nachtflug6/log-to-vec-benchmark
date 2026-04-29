@@ -100,12 +100,12 @@ def build_dataset(npz_path: str, args, split: str):
     """
     Build dataset with split-specific augmentation settings.
     """
-    pair_mode = "augment" if split == "train" else "neighbor"
+    pair_mode = args.train_mode if split == "train" else args.eval_mode
     transform = None
 
-    if split == "train" and args.train_mode == "augment":
+    if split == "train" and pair_mode == "augment":
         transform = build_augmentation("log_weak", jitter_sigma=args.jitter_std)
-    elif split in ("val", "test") and args.eval_mode == "augment":
+    elif split in ("val", "test") and pair_mode == "augment":
         transform = build_augmentation("log_weak", jitter_sigma=args.jitter_std)
 
     if split == "train":

@@ -1,307 +1,159 @@
-# Log-to-Vec: Benchmarking AI Models for Log Embeddings
+# Log-to-Vec Benchmark
 
-A comprehensive benchmarking framework for investigating and evaluating AI models that transform time-stamped log files into vector representations (embeddings). This project focuses on unsupervised and self-supervised learning approaches for capturing behavioral patterns in log sequences.
+AI modeling experiments for multivariate time-series and log embeddings under operating mode changes.
 
-Start here: [PROBLEM_STATEMENT.md](PROBLEM_STATEMENT.md) explains why log embeddings matter, what constraints we care about, and why we compare models under different deployment limits (e.g., edge settings).
+This repository is a research workbench for learning, testing, and tracking window-level embeddings. The central question is not just "can we classify a known mode?" but whether a learned representation captures the structure of a changing system: operating regime, spectral behavior, cross-channel coupling, transition windows, continuous load, robustness, and useful neighborhood geometry.
 
-## Project Overview
+Start with:
 
-Complex software-controlled systems (e.g., CPS and production systems) continuously generate large volumes of log data. This project provides tools and benchmarks to:
+- [Research questions](docs/research_questions.md)
+- [Benchmark design](docs/benchmark_design.md)
+- [Modeling and evaluation protocol](docs/modeling_and_evaluation.md)
+- [Historical results and artifacts](docs/results_artifact_index.md)
 
-- Transform log sequences into meaningful embeddings
-- Compare different embedding approaches (autoencoders, Transformers, contrastive learning)
-- Evaluate embeddings on downstream tasks (similarity search, clustering, anomaly detection)
-- Study unsupervised training strategies for log data
+## What This Repo Is For
 
-## Student Quick Start (Where to Add What)
+The project studies self-supervised and unsupervised embeddings for windows of multivariate sequences:
 
-If you're adding new methods or experiments, these are the main places to work:
+```text
+trajectory -> windows -> encoder -> embeddings -> probes / retrieval / clustering / reports
+```
 
-- Models: add your model class in [src/log_to_vec/models](src/log_to_vec/models)
-- Training logic: extend/adjust trainers in [src/log_to_vec/training](src/log_to_vec/training)
-- Data handling: parsing/datasets in [src/log_to_vec/data](src/log_to_vec/data)
-- Evaluation metrics: add new metrics in [src/log_to_vec/evaluation/metrics.py](src/log_to_vec/evaluation/metrics.py)
-- Example scripts: add runnable demos in [examples](examples)
-- Experiment automation: place hyperparameter sweeps in [experiments](experiments)
+The intended first benchmark is a factorized switched state-space setting with controlled latent factors. Synthetic data is used as a scientific instrument: it provides known hidden structure, controlled noise and device shifts, trajectory-level splits, and explicit transition windows.
 
-Detailed guidance for students is in [STUDENT_GUIDE.md](STUDENT_GUIDE.md).
+The repo supports:
 
-## Features
+- controlled synthetic dataset generation,
+- trajectory-level splitting and leakage checks,
+- baseline feature extraction,
+- self-supervised encoders and pretrained embedding extraction,
+- factor recoverability evaluation,
+- retrieval, clustering, transition, and robustness analysis,
+- experiment metadata and historical artifact tracking.
 
-- **Data Generation**: Realistic PLC-like log generator for testing
-- **Multiple Model Architectures**: LSTM autoencoders, Transformer autoencoders, contrastive models
-- **Comprehensive Evaluation**: Metrics for reconstruction, similarity, clustering, and retrieval
-- **Mode-Change Baseline**: Optional unsupervised change-point and segment clustering scaffold for numerical time-series logs
-- **Structured Experiment Registry**: Schema and templates for reproducible run metadata
-- **Flexible Configuration**: YAML-based configuration system
-- **Containerization**: Docker and Apptainer support for reproducibility and HPC deployment
+## Repository Layout
 
-## Quick Start
+```text
+configs/                         Shared model and training configs
+docs/                            Research notes, protocols, and artifact index
+examples/                        Runnable demos and exploratory entrypoints
+experiments/registry/            Run metadata schema and templates
+experiments/rq1_recoverability/  Formal RQ1 benchmark pipeline
+src/log_to_vec/                  Canonical reusable package
+src/version2/                    Experimental FSSS / TCN hybrid namespace
+src/moment/                      MOMENT synthetic-data helpers
+archive/                         Archived branch-only legacy code and scratch files
+outputs/                         Historical generated outputs from prior branches
+data/                            Local input data; ignored except .gitkeep
+```
 
-### Installation
+`log_to_vec` is the canonical reusable package. `version2`, `moment`, and `experiments/rq1_recoverability/src/rq1` are research namespaces retained because they encode useful experiment history and active benchmark components.
 
-#### Option 1: Local Installation
+## Install
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd log-to-vec
-
-# Create a virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-
-# Install the package in development mode
 pip install -e .
 ```
 
-#### Option 2: Docker
+The full experiment stack uses PyTorch and scikit-learn. Some optional pretrained-model paths, such as MOMENT extraction, require their own model dependencies and credentials/cache setup.
+
+## Main Workflows
+
+### 1. Generate And Split The RQ1 Benchmark
+
+RQ1 asks whether unsupervised embeddings can recover latent factors in a controlled synthetic setting.
 
 ```bash
-# Build the Docker image
-docker build -t log-to-vec .
+python experiments/rq1_recoverability/scripts/01_generate_frs_dataset.py \
+  --dataset_name frs_clean_vnext_long
 
-# Run container
-docker run -it --rm -v $(pwd)/data:/app/data log-to-vec
+python experiments/rq1_recoverability/scripts/02_create_dataset_splits.py \
+  --dataset_name frs_clean_vnext_long
 ```
 
-**Why Docker?** It ensures everyone uses the same OS + dependencies, which is critical for reproducible experiments and avoiding "it works on my machine" issues.
+The formal dataset family is FRS: Factorized Regime Sequence. It models discrete mode as a combination of spectral family and coupling level, plus transition windows and continuous load.
 
-#### Option 3: Apptainer (for HPC clusters)
+### 2. Compute Baseline Representations
 
 ```bash
-# Build the Apptainer container
-apptainer build log-to-vec.sif apptainer.def
-
-# Run with GPU support
-apptainer exec --nv log-to-vec.sif python examples/train_toy_example.py
+python experiments/rq1_recoverability/scripts/03_compute_baseline_representations.py \
+  --dataset_name frs_clean_vnext_long
 ```
 
-**Why Apptainer?** Many HPC clusters disallow Docker for security reasons. Apptainer runs containers without root privileges and works well on shared infrastructure.
+Baselines include raw summaries, PCA-style features, FFT/statistical features in exploratory paths, and probe-ready representations. These are essential: learned embeddings are only interesting if they beat strong simple comparators for the right reasons.
 
-### Generate Toy Data
+### 3. Train Or Extract Embeddings
+
+Canonical examples:
 
 ```bash
-# Generate a single log file
-python examples/toy_log_generator.py --num-events 10000
-
-# Generate multiple scenarios
-python examples/toy_log_generator.py --scenarios
+python examples/train_contrastive_toy.py --config configs/contrastive_toy.yaml
+python examples/fsss/train_tcn_hybrid.py --help
+python examples/moment/extract_moment_embeddings.py --help
 ```
 
-### Preprocess Logs to Numerical Features
+Research directions currently represented in the repo include:
 
-Transform logs into numerical feature vectors:
+- TCN / TS2Vec-style contrastive encoders,
+- masked or reconstruction-style objectives,
+- hybrid contrastive plus reconstruction losses,
+- MOMENT pretrained embeddings,
+- classical feature baselines.
+
+### 4. Evaluate Recoverability
 
 ```bash
-# Basic preprocessing
-python examples/preprocess_logs.py --input data/toy_logs.csv
-
-# Create sequences with sliding window
-python examples/preprocess_logs.py \
-    --input data/toy_logs.csv \
-    --sequence-length 10 \
-    --stride 5 \
-    --output data/processed_features.npz
-
-# Visualize features
-python examples/visualize_features.py --input data/processed_features.npz
+python experiments/rq1_recoverability/scripts/06_evaluate_recoverability.py --help
+python examples/fsss/run_eval_v2.py --help
 ```
 
-See [PREPROCESSING_GUIDE.md](PREPROCESSING_GUIDE.md) for detailed documentation.
+Evaluation is multi-view:
 
-### Train Your First Model
+- probes for mode, spectral factor, coupling, transition, and load,
+- retrieval metrics for local structure,
+- clustering metrics for global structure,
+- separate reporting for clean versus transition windows,
+- robustness and multi-seed stability checks.
+
+## Experiment Tracking
+
+Use `experiments/registry/schema.json` and `experiments/registry/templates/run_metadata.template.json` for reproducible run metadata. Generated outputs can live under `outputs/` or experiment-specific artifact folders, but new generated files are ignored by default unless they are intentionally added as curated evidence.
+
+This branch intentionally commits historical artifacts from earlier branches so prior results are inspectable. See [Historical results and artifacts](docs/results_artifact_index.md).
+
+## Research Positioning
+
+The project has drifted from simple toy log demos toward a broader AI modeling benchmark. The current framing is:
+
+- The embedding is the object being learned.
+- Labels are used for evaluation and diagnosis, not self-supervised pretraining.
+- Positive-pair design must match the evaluation goal.
+- Trajectory-level splits are mandatory to avoid leakage.
+- High retrieval alone can be misleading if it only reflects temporal-neighbor bias.
+- Linear probes, clustering, retrieval, transition analysis, and robustness must be read together.
+
+## Development Checks
 
 ```bash
-# Train LSTM autoencoder on toy data
-python examples/train_toy_example.py --config configs/toy_example.yaml
-
-# Or train a simple classifier on preprocessed features
-python examples/train_classifier.py --input data/toy_logs.csv
+python3 -m compileall -q src examples experiments
+python3 -m pytest tests
 ```
 
-## Canonical Training Entrypoints
-
-Use these scripts as the primary entrypoints in the unified branch:
-
-- Reconstruction baseline: [examples/train_toy_example.py](examples/train_toy_example.py)
-- Contrastive baseline (config-driven): [examples/train_contrastive_toy.py](examples/train_contrastive_toy.py)
-- Version2 hybrid baseline: [examples/fsss/train_tcn_hybrid.py](examples/fsss/train_tcn_hybrid.py)
-
-Compatibility script retained for older split-based workflows:
-
-- [examples/train_contrastive.py](examples/train_contrastive.py)
-
-## How to Add a New Model
-
-1. **Create a model file** in [src/log_to_vec/models](src/log_to_vec/models) (e.g., `my_model.py`).
-2. **Inherit** from `BaseEmbeddingModel` in [src/log_to_vec/models/base.py](src/log_to_vec/models/base.py).
-3. **Register** the model in [examples/train_toy_example.py](examples/train_toy_example.py) so it can be selected via config.
-4. **Add config** in [configs](configs) (e.g., `my_model.yaml`).
-
-See the walkthrough in [STUDENT_GUIDE.md](STUDENT_GUIDE.md).
-
-## Where to Add New Loss Functions
-
-- If the loss is tied to a model, implement it inside your model's `forward()` in [src/log_to_vec/models](src/log_to_vec/models).
-- If you want a reusable loss, add a helper in [src/log_to_vec/training](src/log_to_vec/training) and call it from the training loop.
-- Add tests in [tests](tests) for any new loss logic.
-
-## Hyperparameter Search / Experiment Scripts
-
-- Put sweep scripts in [experiments](experiments).
-- Start by cloning the example pattern in [examples/train_toy_example.py](examples/train_toy_example.py), then loop over config variants.
-- For clusters, run your scripts with Apptainer:
+If the local environment lacks optional ML dependencies, run lightweight checks first:
 
 ```bash
-apptainer exec --nv log-to-vec.sif \
-  python experiments/run_benchmark.py
+python3 examples/generate_sine_logs.py --help
+python3 examples/train_contrastive.py --help
+python3 examples/fsss/build_fsss_splits.py --help
 ```
 
-## Where to Test Changes
+## Contributing Guidance
 
-- Unit tests live in [tests](tests). Add a new test file for your feature or loss.
-- Use `pytest` to run tests:
-
-```bash
-pytest tests/
-```
-
-## Project Structure
-
-```
-log-to-vec/
-├── README.md                      # This file
-├── STUDENT_GUIDE.md              # Detailed guide for students
-├── PREPROCESSING_GUIDE.md        # Guide for log preprocessing
-├── requirements.txt              # Python dependencies
-├── setup.py                      # Package setup
-├── Dockerfile                    # Docker configuration
-├── apptainer.def                 # Apptainer definition
-├── configs/                      # Configuration files
-│   └── toy_example.yaml
-├── src/
-│   └── log_to_vec/
-│       ├── data/                 # Data handling
-│       │   ├── log_parser.py    # Log parsing and tokenization
-│       │   ├── preprocessor.py  # Numerical feature extraction
-│       │   └── dataset.py       # PyTorch datasets
-│       ├── models/               # Model implementations
-│       │   ├── base.py          # Base classes
-│       │   ├── autoencoder.py   # Autoencoder models
-│       │   ├── transformer.py   # Transformer models (TODO)
-│       │   └── contrastive.py   # Contrastive models (TODO)
-│       ├── training/             # Training utilities
-│       └── evaluation/           # Evaluation metrics
-│           └── metrics.py
-├── examples/                     # Example scripts
-│   ├── toy_log_generator.py     # Generate synthetic logs
-│   ├── preprocess_logs.py       # Preprocess to numerical features
-│   ├── visualize_features.py    # Visualize preprocessed features
-│   ├── train_classifier.py      # Train simple classifier
-│   └── train_toy_example.py     # Train on toy data
-├── experiments/                  # Experiment scripts
-├── tests/                        # Unit tests
-└── data/                        # Data directory (gitignored)
-```
-
-## Configuration
-
-All experiments are configured via YAML files in the `configs/` directory. Key configuration sections:
-
-- **data**: Dataset parameters (sequence length, splits, etc.)
-- **model**: Model architecture and hyperparameters
-- **training**: Training settings (batch size, learning rate, epochs)
-- **evaluation**: Evaluation metrics and parameters
-- **logging**: Logging and checkpointing settings
-- **mode_change**: Optional change-point and segment clustering baseline settings
-
-## Structured Experiment Tracking
-
-Use the registry files under [experiments/registry](experiments/registry) to log each run in a machine-readable format.
-
-- Schema: [experiments/registry/schema.json](experiments/registry/schema.json)
-- Metadata template: [experiments/registry/templates/run_metadata.template.json](experiments/registry/templates/run_metadata.template.json)
-- Run artifacts directory: [experiments/registry/runs/.gitkeep](experiments/registry/runs/.gitkeep)
-
-Human-readable logs and merge decisions:
-
-- Experiment log: [docs/experiment_log.md](docs/experiment_log.md)
-- Branch merge ledger: [docs/merge_ledger.md](docs/merge_ledger.md)
-- Distilled findings: [docs/research_findings.md](docs/research_findings.md)
-
-## Alvis Cluster Helpers
-
-Use helper scripts to standardize experiment execution on alvis1:
-
-```bash
-# Submit a SLURM job
-scripts/alvis_submit.sh scripts/slurm/smoke_train.slurm
-
-# Check job status
-scripts/alvis_status.sh
-
-# Collect artifacts from alvis1
-scripts/alvis_collect.sh /path/on/alvis/results ./results
-```
-
-## Development
-
-### Running Tests
-
-```bash
-pytest tests/
-```
-
-### Code Formatting
-
-```bash
-# Format code
-black src/ examples/
-
-# Check style
-flake8 src/ examples/
-
-# Sort imports
-isort src/ examples/
-```
-
-## Contributing
-
-This is a research project. Students should:
-
-1. Fork the repository
-2. Create a feature branch
-3. Implement your method
-4. Add tests and documentation
-5. Submit a pull request
-
-See [STUDENT_GUIDE.md](STUDENT_GUIDE.md) for detailed instructions.
-
-## Citation
-
-If you use this code in your research, please cite:
-
-```bibtex
-@software{log_to_vec,
-  title = {Log-to-Vec: Benchmarking AI Models for Log Embeddings},
-  author = {Your Team},
-  year = {2026},
-  url = {https://github.com/yourusername/log-to-vec}
-}
-```
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Acknowledgments
-
-This project is developed as part of a master's thesis project on log embedding methods.
-
-## Contact
-
-For questions and support, please open an issue on GitHub or contact the project maintainers.
+- Add reusable code under `src/log_to_vec` when it is meant to be canonical.
+- Keep exploratory but useful research code under an explicit experiment namespace.
+- Store run metadata using the registry template.
+- Avoid random window-level train/test splits for overlapping trajectory windows.
+- Add or update docs when changing the scientific interpretation of an experiment.

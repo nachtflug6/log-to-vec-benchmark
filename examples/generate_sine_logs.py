@@ -6,7 +6,6 @@ from typing import Dict, List, Tuple, Optional
 
 import numpy as np
 import pandas as pd
-from sympy.core.random import rng
 
 
 def ensure_dir(path: str) -> None:
@@ -144,6 +143,7 @@ def sample_block_config(
 
 
 def build_state_schedule(
+    rng: np.random.Generator,
     num_points: int,
     use_state_segments: bool,
     has_error: bool,
@@ -255,6 +255,7 @@ def generate_sine_block(
     )
 
     states = build_state_schedule(
+        rng=rng,
         num_points=num_points,
         use_state_segments=preset["use_state_segments"],
         has_error=config["has_error"],

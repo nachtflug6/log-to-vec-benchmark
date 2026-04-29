@@ -1,0 +1,133 @@
+{
+  "split_by": "trajectory",
+  "seed": 42,
+  "has_hard_leakage": false,
+  "overlap": {
+    "trajectory_overlap": {
+      "train_val": [],
+      "train_test": [],
+      "val_test": []
+    },
+    "device_overlap": {
+      "train_val": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "train_test": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "val_test": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  },
+  "splits": {
+    "train": {
+      "num_windows": 1932,
+      "num_trajectories": 84,
+      "num_devices": 5,
+      "mode_counts": {
+        "0": 160,
+        "1": 133,
+        "2": 192,
+        "3": 146,
+        "4": 158,
+        "5": 211,
+        "6": 184,
+        "7": 167,
+        "8": 142,
+        "9": 162,
+        "10": 134,
+        "11": 143
+      },
+      "spectral_counts": {
+        "0": 485,
+        "1": 515,
+        "2": 493,
+        "3": 439
+      },
+      "coupling_counts": {
+        "0": 667,
+        "1": 588,
+        "2": 677
+      },
+      "transition_fraction": 0.8136646151542664,
+      "mean_load": 0.9920262694358826
+    },
+    "val": {
+      "num_windows": 414,
+      "num_trajectories": 18,
+      "num_devices": 5,
+      "mode_counts": {
+        "0": 20,
+        "1": 42,
+        "2": 33,
+        "3": 13,
+        "4": 36,
+        "5": 53,
+        "6": 54,
+        "7": 34,
+        "8": 24,
+        "9": 15,
+        "10": 56,
+        "11": 34
+      },
+      "spectral_counts": {
+        "0": 95,
+        "1": 102,
+        "2": 112,
+        "3": 105
+      },
+      "coupling_counts": {
+        "0": 105,
+        "1": 169,
+        "2": 140
+      },
+      "transition_fraction": 0.772946834564209,
+      "mean_load": 1.0224374532699585
+    },
+    "test": {
+      "num_windows": 414,
+      "num_trajectories": 18,
+      "num_devices": 5,
+      "mode_counts": {
+        "0": 51,
+        "1": 45,
+        "2": 36,
+        "3": 22,
+        "4": 32,
+        "5": 51,
+        "6": 14,
+        "7": 33,
+        "8": 18,
+        "9": 35,
+        "10": 46,
+        "11": 31
+      },
+      "spectral_counts": {
+        "0": 132,
+        "1": 105,
+        "2": 65,
+        "3": 112
+      },
+      "coupling_counts": {
+        "0": 125,
+        "1": 155,
+        "2": 134
+      },
+      "transition_fraction": 0.7632850408554077,
+      "mean_load": 0.9931614995002747
+    }
+  }
+}

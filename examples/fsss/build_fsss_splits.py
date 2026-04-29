@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from version2.data.fsss_data import (
     SplitConfig,

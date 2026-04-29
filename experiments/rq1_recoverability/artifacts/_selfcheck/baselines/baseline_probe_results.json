@@ -1,0 +1,59 @@
+{
+  "train_file": "experiments\\rq1_recoverability\\artifacts\\_selfcheck\\splits\\train_windows.npz",
+  "test_file": "experiments\\rq1_recoverability\\artifacts\\_selfcheck\\splits\\test_windows.npz",
+  "num_train": 1932,
+  "num_test": 414,
+  "window_shape": [
+    96,
+    4
+  ],
+  "results": {
+    "summary": {
+      "train_feature_shape": [
+        1932,
+        20
+      ],
+      "test_feature_shape": [
+        414,
+        20
+      ],
+      "targets": {
+        "mode_id": {
+          "linear": {
+            "skipped": false,
+            "accuracy": 0.37922705314009664,
+            "balanced_accuracy": 0.3707465050488306
+          }
+        },
+        "spectral_id": {
+          "linear": {
+            "skipped": false,
+            "accuracy": 0.5772946859903382,
+            "balanced_accuracy": 0.566255987068707
+          }
+        },
+        "coupling_id": {
+          "linear": {
+            "skipped": false,
+            "accuracy": 0.606280193236715,
+            "balanced_accuracy": 0.5879415929125954
+          }
+        },
+        "is_transition_window": {
+          "linear": {
+            "skipped": false,
+            "accuracy": 0.7729468599033816,
+            "balanced_accuracy": 0.5140526729559749
+          }
+        },
+        "mean_load": {
+          "linear": {
+            "mae": 0.04690195992588997,
+            "rmse": 0.05699173239159537,
+            "r2": -0.027585864067077637
+          }
+        }
+      }
+    }
+  }
+}

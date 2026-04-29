@@ -1,0 +1,116 @@
+{
+  "split_config": {
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "split_by": "trajectory",
+    "seed": 64
+  },
+  "source_metadata": {
+    "dataset_name": "frs_noisy_vnext_long",
+    "family": "frs",
+    "family_name": "Factorized Regime Sequence",
+    "config": {
+      "profile": "frs_noisy_vnext",
+      "seed": 64,
+      "num_trajectories": 120,
+      "trajectory_length": 640,
+      "latent_dim": 6,
+      "num_channels": 4,
+      "min_segments": 4,
+      "max_segments": 8,
+      "min_dwell": 40,
+      "max_dwell": 104,
+      "window_length": 96,
+      "stride": 24,
+      "transition_margin": 6,
+      "transition_blend": 4,
+      "process_noise_std": 0.018,
+      "observation_noise_std": 0.016,
+      "load_min": 0.82,
+      "load_max": 1.18,
+      "load_drift_std": 0.0028,
+      "load_wave_amplitude": 0.04,
+      "num_devices": 5,
+      "device_gain_jitter": 0.03,
+      "device_bias_jitter": 0.022,
+      "cross_channel_mix": 0.008,
+      "channel_dropout_prob": 0.004,
+      "offset_shift_prob": 0.025,
+      "offset_shift_std": 0.012,
+      "load_amplitude_gain": 0.26,
+      "load_frequency_gain": 0.08,
+      "load_noise_gain": 0.24,
+      "coupling_observation_gain": 0.18,
+      "coupling_shared_drive_gain": 0.1,
+      "load_offset_gain": 0.0,
+      "coupling_lag_gain": 0.24,
+      "footprint_version": 4,
+      "load_envelope_gain": 0.4,
+      "spectral_projection_mix": 0.85
+    },
+    "num_trajectories": 120,
+    "num_windows": 2760,
+    "window_shape": [
+      96,
+      4
+    ],
+    "transition_window_fraction": 0.77173912525177,
+    "unique_regime_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "unique_spectral_family_ids": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "unique_coupling_level_ids": [
+      0,
+      1,
+      2
+    ],
+    "spectral_families": [
+      "single_periodic",
+      "damped_periodic",
+      "multi_periodic",
+      "quasi_aperiodic"
+    ],
+    "coupling_levels": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "primary_targets": [
+      "mode_id",
+      "spectral_id",
+      "coupling_id",
+      "is_transition_window",
+      "mean_load"
+    ],
+    "notes": [
+      "Formal synthetic benchmark family for RQ1 recoverability.",
+      "FRS = Factorized Regime Sequence.",
+      "Long-window variant for MOMENT context ablation.",
+      "Trajectory length is increased to preserve non-transition windows under longer context."
+    ],
+    "variant": "frs_noisy_vnext_long",
+    "long_context_protocol": {
+      "window_length": 96,
+      "stride": 24,
+      "trajectory_length": 640,
+      "design_note": "Long-context variants increase both window size and regime-supporting trajectory length."
+    }
+  }
+}

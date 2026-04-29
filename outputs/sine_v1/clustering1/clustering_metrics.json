@@ -1,0 +1,10 @@
+{
+  "num_samples": 61,
+  "embedding_dim": 128,
+  "num_reference_labels": 5,
+  "num_clusters": 5,
+  "ari": 0.33059805931533803,
+  "nmi": 0.48973661328514106,
+  "purity": 0.6065573770491803,
+  "silhouette": 0.44487881660461426
+}

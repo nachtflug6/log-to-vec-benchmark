@@ -13,7 +13,7 @@ from sklearn.svm import SVC, SVR
 from sklearn.linear_model import LogisticRegression, Ridge
 
 import sys
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 from version2.evaluation.baseline_features import build_feature_set
 
 
