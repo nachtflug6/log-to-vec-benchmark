@@ -2,12 +2,17 @@
 
 __version__ = "0.1.0"
 
-from .data.log_parser import LogParser
+try:
+    from .data.log_parser import LogParser
+except ModuleNotFoundError as exc:  # pragma: no cover - depends on optional local data stack
+    if exc.name != "pandas":
+        raise
+    LogParser = None
 
 try:
     from .data.dataset import LogDataset
 except ModuleNotFoundError as exc:  # pragma: no cover - depends on optional local ML stack
-    if exc.name != "torch":
+    if exc.name not in {"pandas", "torch"}:
         raise
     LogDataset = None
 

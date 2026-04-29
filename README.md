@@ -150,6 +150,43 @@ python3 examples/train_contrastive.py --help
 python3 examples/fsss/build_fsss_splits.py --help
 ```
 
+## Alvis Apptainer Smoke Deploy
+
+The repo includes a small end-to-end smoke path for the Alvis cluster. It syncs
+the current checkout to `ssh alvis1`, submits a Slurm job on the `alvis`
+partition, runs inside a PyTorch Apptainer image, trains a tiny contrastive
+model, and verifies that model artifacts were created.
+
+```bash
+scripts/alvis_submit_smoke.sh --wait --collect
+```
+
+Collected artifacts are written locally under `outputs/alvis_smoke/<RUN_ID>/`.
+The expected files include `smoke_summary.json`, `checkpoints/best_model.pt`,
+`checkpoints/test_embeddings.npy`, and Slurm logs under `slurm_logs/`.
+
+Useful overrides:
+
+```bash
+ALVIS_GPU=A40:1 ALVIS_TIME=00:10:00 scripts/alvis_submit_smoke.sh --wait --collect
+```
+
+Supported environment variables:
+
+- `ALVIS_ACCOUNT`: Slurm account, default `naiss2026-4-91`
+- `ALVIS_PARTITION`: Slurm partition, default `alvis`
+- `ALVIS_GPU`: Slurm GPU GRES suffix, default `T4:1`
+- `ALVIS_IMAGE`: Apptainer SIF, default `/apps/containers/codeserver/codeserver-PyTorch-2.9.1.sif`
+- `ALVIS_REMOTE_ROOT`: remote repo directory, default `/cephyr/users/$USER/Alvis/log-to-vec-benchmark`
+- `ALVIS_HOST`: SSH host alias, default `alvis1`
+- `RUN_ID`: smoke run identifier, default `ALVIS-SMOKE-<timestamp>`
+
+To only refresh the remote checkout without submitting a job:
+
+```bash
+scripts/alvis_submit_smoke.sh --sync-only
+```
+
 ## Contributing Guidance
 
 - Add reusable code under `src/log_to_vec` when it is meant to be canonical.
