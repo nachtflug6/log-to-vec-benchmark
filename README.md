@@ -2,9 +2,33 @@
 
 AI modeling experiments for multivariate time-series and log embeddings under operating mode changes.
 
-This repository is a research workbench for learning, testing, and tracking window-level embeddings. The central question is not just "can we classify a known mode?" but whether a learned representation captures the structure of a changing system: operating regime, spectral behavior, cross-channel coupling, transition windows, continuous load, robustness, and useful neighborhood geometry.
+**Start here for an overview of what was learned:**
 
-Start with:
+- [Retrospective](RETROSPECTIVE.md) — what was tried, key numbers, open problems, what not to repeat
+- [Next experiments](docs/next_experiments.md) — three-track roadmap (FRS fixes, LLM log embedding, bridge)
+- [Experiment history](experiments/history/) — dense per-phase reports with full result tables
+
+---
+
+The central question is not just "can we classify a known mode?" but whether a learned
+representation captures the structure of a changing system: operating regime, spectral
+behavior, cross-channel coupling, transition windows, continuous load, robustness, and useful
+neighborhood geometry.
+
+## Current State
+
+The project has completed three experiment phases. Key findings:
+
+- Best learned method (TS2Vec e120) beats FFT baseline by **6.2pp** (clean) on average factor
+  probe accuracy — a thin margin.
+- **Load factor is never learned** (R² ≤ 0 for every method in every setting).
+- Clustering ARI is universally low (< 0.21) despite high retrieval — training objective
+  mismatch confirmed.
+- Target domain is **PLC / SCADA logs**: timestamped sensor readings (float) and machine state
+  codes (integer), no free text. The FRS numerical benchmark is a valid proxy for this domain;
+  see [RETROSPECTIVE.md](RETROSPECTIVE.md) for details and the PLC bridge plan.
+
+Other starting points:
 
 - [Research questions](docs/research_questions.md)
 - [Benchmark design](docs/benchmark_design.md)
