@@ -61,8 +61,23 @@ def _load_moment(model_name: str, device: torch.device):
     return model
 
 
+MOMENT_SEQ_LEN = 512
+
+
+def _pad_to_moment_len(X: np.ndarray) -> np.ndarray:
+    """Zero-pad [N, L, C] to [N, MOMENT_SEQ_LEN, C] if L < MOMENT_SEQ_LEN."""
+    N, L, C = X.shape
+    if L == MOMENT_SEQ_LEN:
+        return X
+    if L > MOMENT_SEQ_LEN:
+        return X[:, :MOMENT_SEQ_LEN, :]
+    pad = np.zeros((N, MOMENT_SEQ_LEN - L, C), dtype=X.dtype)
+    return np.concatenate([X, pad], axis=1)
+
+
 def _extract_moment(X: np.ndarray, model, device: torch.device, batch_size: int) -> np.ndarray:
-    """X: [N, L, C] -> embeddings [N, D]."""
+    """X: [N, L, C] -> embeddings [N, D]. Pads/truncates L to MOMENT_SEQ_LEN."""
+    X = _pad_to_moment_len(X)
     N, L, C = X.shape
     all_emb: List[np.ndarray] = []
 
@@ -74,8 +89,10 @@ def _extract_moment(X: np.ndarray, model, device: torch.device, batch_size: int)
             out = model(x_enc=t)
         if hasattr(out, "embeddings"):
             emb = out.embeddings.cpu().numpy()
-        else:
+        elif torch.is_tensor(out):
             emb = out.cpu().numpy()
+        else:
+            raise RuntimeError(f"Unexpected MOMENT output type: {type(out)}")
         all_emb.append(emb)
 
     return np.concatenate(all_emb, axis=0)

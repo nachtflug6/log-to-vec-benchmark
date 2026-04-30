@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=log2vec-rq2-trace
+#SBATCH --account=naiss2026-4-91
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
+#SBATCH --gpus-per-node=T4:1
 #SBATCH --cpus-per-task=4
 #SBATCH --time=01:30:00
 #SBATCH --output=logs/rq2/%x_%j.out
@@ -69,13 +71,19 @@ fi
 # ---------------------------------------------------------------------------
 # Step 2b: MOMENT embeddings (pretrained, GPU)
 # ---------------------------------------------------------------------------
-echo "[2b/6] Extracting MOMENT embeddings..."
-apptainer exec --nv --pwd "${ALVIS_REPO}" "${ALVIS_IMAGE}" \
-  python "${RQ2_DIR}/scripts/02_extract_embeddings.py" \
-    --data_dir "${DATA_DIR}" \
-    --output_dir "${EMB_DIR}" \
-    --model moment \
-    --device cuda
+if [[ -f "${EMB_DIR}/p3_hard_noisy_moment.npz" ]]; then
+  echo "[2b/6] MOMENT embeddings already exist, skipping."
+else
+  echo "[2b/6] Extracting MOMENT embeddings..."
+  apptainer exec --nv --pwd "${ALVIS_REPO}" \
+    --env TRANSFORMERS_OFFLINE=1 \
+    "${ALVIS_IMAGE}" \
+    python -u "${RQ2_DIR}/scripts/02_extract_embeddings.py" \
+      --data_dir "${DATA_DIR}" \
+      --output_dir "${EMB_DIR}" \
+      --model moment \
+      --device cuda
+fi
 
 # ---------------------------------------------------------------------------
 # Step 3: Train TS2Vec on each problem
@@ -84,7 +92,7 @@ echo "[3/6] Training TS2Vec encoders..."
 for PROBLEM in p1_simple_1d p2_multichannel p3_hard_noisy; do
   echo "  Training on ${PROBLEM}..."
   apptainer exec --nv --pwd "${ALVIS_REPO}" "${ALVIS_IMAGE}" \
-    python "${RQ2_DIR}/scripts/03_train_ts2vec.py" \
+    python -u "${RQ2_DIR}/scripts/03_train_ts2vec.py" \
       --data_dir "${DATA_DIR}" \
       --output_dir "${EMB_DIR}" \
       --problem "${PROBLEM}" \
@@ -98,7 +106,7 @@ done
 # ---------------------------------------------------------------------------
 echo "[4/6] Computing trace metrics..."
 apptainer exec --nv --pwd "${ALVIS_REPO}" "${ALVIS_IMAGE}" \
-  python "${RQ2_DIR}/scripts/04_compute_trace_metrics.py" \
+  python -u "${RQ2_DIR}/scripts/04_compute_trace_metrics.py" \
     --data_dir "${DATA_DIR}" \
     --embeddings_dir "${EMB_DIR}" \
     --output_dir "${METRICS_DIR}"
@@ -108,7 +116,7 @@ apptainer exec --nv --pwd "${ALVIS_REPO}" "${ALVIS_IMAGE}" \
 # ---------------------------------------------------------------------------
 echo "[5/6] Generating visualizations..."
 apptainer exec --nv --pwd "${ALVIS_REPO}" "${ALVIS_IMAGE}" \
-  python "${RQ2_DIR}/scripts/05_visualize_traces.py" \
+  python -u "${RQ2_DIR}/scripts/05_visualize_traces.py" \
     --data_dir "${DATA_DIR}" \
     --embeddings_dir "${EMB_DIR}" \
     --output_dir "${PLOTS_DIR}"
@@ -118,7 +126,7 @@ apptainer exec --nv --pwd "${ALVIS_REPO}" "${ALVIS_IMAGE}" \
 # ---------------------------------------------------------------------------
 echo "[6/6] Building report..."
 apptainer exec --nv --pwd "${ALVIS_REPO}" "${ALVIS_IMAGE}" \
-  python "${RQ2_DIR}/scripts/06_build_report.py" \
+  python -u "${RQ2_DIR}/scripts/06_build_report.py" \
     --metrics_dir "${METRICS_DIR}" \
     --plots_dir "${PLOTS_DIR}" \
     --output_dir "${REPORTS_DIR}"
