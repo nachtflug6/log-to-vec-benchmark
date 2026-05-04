@@ -1,0 +1,54 @@
+{
+  "event_type_vocab": {
+    "COMM_DELAY": 0,
+    "DIAGNOSIS_START": 1,
+    "ERROR_DETECTED": 2,
+    "ESCALATION": 3,
+    "HEALTH_OK": 4,
+    "RECOVERY_ACTION": 5,
+    "RETRY_OPERATION": 6,
+    "STATUS_CHECK": 7,
+    "VALUE_READ": 8,
+    "WARNING_RAISED": 9
+  },
+  "component_vocab": {
+    "ControlUnit": 0,
+    "NetworkUnit": 1,
+    "ProcessingUnit": 2,
+    "SensorUnit": 3
+  },
+  "severity_vocab": {
+    "CRITICAL": 0,
+    "ERROR": 1,
+    "INFO": 2,
+    "WARNING": 3
+  },
+  "state_vocab": {
+    "DEGRADED": 0,
+    "RECOVERY": 1,
+    "RUNNING": 2,
+    "WARNING": 3
+  },
+  "data_feature_names": [
+    "sensor_value",
+    "control_value"
+  ],
+  "numeric_feature_stats": {
+    "sensor_value": {
+      "min": 0.128491,
+      "max": 1.0
+    },
+    "control_value": {
+      "min": 0.0,
+      "max": 0.909703
+    }
+  },
+  "feature_names": [
+    "event_type_id",
+    "component_id",
+    "severity_id",
+    "state_id",
+    "sensor_value",
+    "control_value"
+  ]
+}

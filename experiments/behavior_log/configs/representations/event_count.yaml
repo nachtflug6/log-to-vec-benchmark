@@ -1,0 +1,6 @@
+run_name: event_count_v3
+window_file: experiments/behavior_log/artifacts/datasets/hard_behavior_sequence_v3/windows/windows.npz
+output_dir: experiments/behavior_log/artifacts/runs/event_count_v3
+method: event_count
+state_file: representation_state.json
+summary_file: representation_summary.json

@@ -1,0 +1,116 @@
+{
+  "seed": 123,
+  "requested_num_trajectories": 2,
+  "events_per_trajectory": 20,
+  "cycles_per_trajectory": 4,
+  "generated_num_events": 40,
+  "generated_num_trajectories": 2,
+  "selected_behavior_ids": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "selected_behavior_probs": [
+    0.65,
+    0.15,
+    0.15,
+    0.05
+  ],
+  "behavior_trajectory_counts": [
+    {
+      "behavior_id": 0,
+      "behavior_name": "Normal Cycle",
+      "trajectory_count": 2
+    },
+    {
+      "behavior_id": 1,
+      "behavior_name": "Warning Recovery",
+      "trajectory_count": 1
+    }
+  ],
+  "behavior_cycle_counts": [
+    {
+      "behavior_id": 0,
+      "cycle_count": 7
+    },
+    {
+      "behavior_id": 1,
+      "cycle_count": 1
+    }
+  ],
+  "catalog": [
+    {
+      "behavior_id": 0,
+      "behavior_name": "Normal Cycle",
+      "log_pattern": [
+        "SENSOR_READ",
+        "ACTUATOR_CMD",
+        "SENSOR_READ",
+        "COMMUNICATION_OK",
+        "WATCHDOG_TICK"
+      ],
+      "state_pattern": [
+        "RUNNING",
+        "RUNNING",
+        "RUNNING",
+        "RUNNING",
+        "RUNNING"
+      ]
+    },
+    {
+      "behavior_id": 1,
+      "behavior_name": "Warning Recovery",
+      "log_pattern": [
+        "SENSOR_READ",
+        "ALARM_TRIGGER",
+        "ACTUATOR_CMD",
+        "SENSOR_READ",
+        "ALARM_CLEAR"
+      ],
+      "state_pattern": [
+        "RUNNING",
+        "WARNING",
+        "RECOVERY",
+        "RECOVERY",
+        "RUNNING"
+      ]
+    },
+    {
+      "behavior_id": 2,
+      "behavior_name": "Communication Issue",
+      "log_pattern": [
+        "SENSOR_READ",
+        "COMMUNICATION_ERROR",
+        "WATCHDOG_TICK",
+        "COMMUNICATION_OK",
+        "SENSOR_READ"
+      ],
+      "state_pattern": [
+        "RUNNING",
+        "WARNING",
+        "WARNING",
+        "RUNNING",
+        "RUNNING"
+      ]
+    },
+    {
+      "behavior_id": 3,
+      "behavior_name": "Maintenance",
+      "log_pattern": [
+        "WATCHDOG_TICK",
+        "MAINTENANCE_MODE",
+        "ACTUATOR_CMD",
+        "COMMUNICATION_OK",
+        "SENSOR_READ"
+      ],
+      "state_pattern": [
+        "MAINTENANCE",
+        "MAINTENANCE",
+        "MAINTENANCE",
+        "MAINTENANCE",
+        "MAINTENANCE"
+      ]
+    }
+  ]
+}

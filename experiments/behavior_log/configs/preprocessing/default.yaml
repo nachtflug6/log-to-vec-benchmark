@@ -1,0 +1,5 @@
+dataset_name: hard_behavior_sequence_v3
+raw_log_csv: experiments/behavior_log/artifacts/datasets/hard_behavior_sequence_v3/raw/raw_logs.csv
+output_dir: experiments/behavior_log/artifacts/datasets/hard_behavior_sequence_v3/preprocessed
+event_feature_file: event_features.npz
+preprocessor_state_file: preprocessor_state.json

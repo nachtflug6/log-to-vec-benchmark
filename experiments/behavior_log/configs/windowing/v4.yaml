@@ -1,0 +1,10 @@
+event_feature_file: experiments/behavior_log/artifacts/datasets/latent_behavior_sequence_v4/preprocessed/event_features.npz
+output_dir: experiments/behavior_log/artifacts/datasets/latent_behavior_sequence_v4/windows
+window_file: windows.npz
+window_length: 20
+stride: 10
+pad_short_traces: true
+seed: 42
+train_ratio: 0.7
+val_ratio: 0.15
+test_ratio: 0.15

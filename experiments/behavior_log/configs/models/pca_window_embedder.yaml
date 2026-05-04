@@ -1,0 +1,7 @@
+run_name: pca_window_embedder_default
+window_file: experiments/behavior_log/artifacts/datasets/behavior_log_default/windows/windows.npz
+output_dir: experiments/behavior_log/artifacts/runs/pca_window_embedder_default
+model_file: pca_window_embedder.pkl
+training_summary_file: training_summary.json
+n_components: 8
+whiten: false

@@ -1,0 +1,12 @@
+dataset_name: hard_behavior_sequence_v3
+seed: 42
+num_trajectories: 60
+events_per_trajectory: 200
+behavior_ids: [0, 1, 2, 3]
+behavior_probs: [0.25, 0.25, 0.25, 0.25]
+trajectory_spacing_seconds: 600.0
+min_step_seconds: 1.0
+max_step_seconds: 3.0
+noise_event_prob: 0.15
+raw_output_dir: experiments/behavior_log/artifacts/datasets/hard_behavior_sequence_v3/raw
+raw_output_name: raw_logs.csv

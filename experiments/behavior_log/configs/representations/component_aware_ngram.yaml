@@ -1,0 +1,7 @@
+run_name: component_aware_ngram_v3
+window_file: experiments/behavior_log/artifacts/datasets/hard_behavior_sequence_v3/windows/windows.npz
+output_dir: experiments/behavior_log/artifacts/runs/component_aware_ngram_v3
+method: component_aware_ngram
+state_file: representation_state.json
+summary_file: representation_summary.json
+n_components: 64

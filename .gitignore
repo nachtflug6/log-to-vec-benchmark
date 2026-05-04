@@ -62,6 +62,8 @@ logs/
 outputs/
 checkpoints/
 results/
+reports/
+visualizations/
 
 # Deferred branch artifacts (kept out of unified code branch)
 experiments/rq1_recoverability/artifacts/
@@ -83,3 +85,4 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+configs/contrastive_toy.yaml
