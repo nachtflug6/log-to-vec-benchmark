@@ -1,0 +1,8 @@
+run_name: ts2vec_style_sweep_span2_p015
+embedding_file: experiments/behavior_log/artifacts/runs/ts2vec_style_sweep_span2_p015/window_embeddings.npz
+output_dir: experiments/behavior_log/artifacts/runs/ts2vec_style_sweep_span2_p015/evaluation
+metrics_file: metrics.json
+knn_k: 3
+logistic_max_iter: 2000
+retrieval_k: 5
+retrieval_ks: [1, 5, 10, 20]

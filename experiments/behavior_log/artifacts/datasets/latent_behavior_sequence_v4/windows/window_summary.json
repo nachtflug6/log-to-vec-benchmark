@@ -1,0 +1,12 @@
+{
+  "n_windows": 1380,
+  "window_shape": [
+    20,
+    6
+  ],
+  "split_counts": {
+    "train": 943,
+    "val": 207,
+    "test": 230
+  }
+}

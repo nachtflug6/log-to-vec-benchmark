@@ -1,0 +1,374 @@
+{
+  "seed": 42,
+  "requested_num_trajectories": 60,
+  "events_per_trajectory": 200,
+  "cycles_per_trajectory": 21,
+  "generated_num_events": 12000,
+  "generated_num_trajectories": 60,
+  "selected_behavior_ids": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "selected_behavior_probs": [
+    0.25,
+    0.25,
+    0.25,
+    0.25
+  ],
+  "behavior_trajectory_counts": [
+    {
+      "behavior_id": 0,
+      "behavior_name": "Successful Recovery",
+      "trajectory_count": 60
+    },
+    {
+      "behavior_id": 1,
+      "behavior_name": "Failed Recovery",
+      "trajectory_count": 60
+    },
+    {
+      "behavior_id": 2,
+      "behavior_name": "Successful Communication Recovery",
+      "trajectory_count": 60
+    },
+    {
+      "behavior_id": 3,
+      "behavior_name": "Persistent Communication Failure",
+      "trajectory_count": 60
+    }
+  ],
+  "behavior_cycle_counts": [
+    {
+      "behavior_id": 0,
+      "cycle_count": 285
+    },
+    {
+      "behavior_id": 1,
+      "cycle_count": 318
+    },
+    {
+      "behavior_id": 2,
+      "cycle_count": 347
+    },
+    {
+      "behavior_id": 3,
+      "cycle_count": 310
+    }
+  ],
+  "catalog": [
+    {
+      "behavior_id": 0,
+      "behavior_name": "Successful Recovery",
+      "variants": [
+        {
+          "variant_id": 0,
+          "variant_name": "successful_recovery_a",
+          "log_pattern": [
+            "SENSOR_READ",
+            "ALARM_TRIGGER",
+            "ACTUATOR_CMD",
+            "SENSOR_READ",
+            "WATCHDOG_TICK",
+            "ALARM_TRIGGER",
+            "WATCHDOG_TICK",
+            "ALARM_CLEAR"
+          ],
+          "state_pattern": [
+            "RUNNING",
+            "WARNING",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "RUNNING"
+          ]
+        },
+        {
+          "variant_id": 1,
+          "variant_name": "successful_recovery_b",
+          "log_pattern": [
+            "SENSOR_READ",
+            "ALARM_TRIGGER",
+            "WATCHDOG_TICK",
+            "ACTUATOR_CMD",
+            "SENSOR_READ",
+            "ALARM_TRIGGER",
+            "WATCHDOG_TICK",
+            "ALARM_CLEAR"
+          ],
+          "state_pattern": [
+            "RUNNING",
+            "WARNING",
+            "WARNING",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "RUNNING"
+          ]
+        },
+        {
+          "variant_id": 2,
+          "variant_name": "successful_recovery_c",
+          "log_pattern": [
+            "WATCHDOG_TICK",
+            "SENSOR_READ",
+            "ALARM_TRIGGER",
+            "ACTUATOR_CMD",
+            "SENSOR_READ",
+            "WATCHDOG_TICK",
+            "ALARM_TRIGGER",
+            "ALARM_CLEAR"
+          ],
+          "state_pattern": [
+            "RUNNING",
+            "RUNNING",
+            "WARNING",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "RUNNING"
+          ]
+        }
+      ]
+    },
+    {
+      "behavior_id": 1,
+      "behavior_name": "Failed Recovery",
+      "variants": [
+        {
+          "variant_id": 0,
+          "variant_name": "failed_recovery_a",
+          "log_pattern": [
+            "SENSOR_READ",
+            "ALARM_TRIGGER",
+            "ACTUATOR_CMD",
+            "SENSOR_READ",
+            "WATCHDOG_TICK",
+            "ALARM_CLEAR",
+            "WATCHDOG_TICK",
+            "ALARM_TRIGGER"
+          ],
+          "state_pattern": [
+            "RUNNING",
+            "WARNING",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "WARNING"
+          ]
+        },
+        {
+          "variant_id": 1,
+          "variant_name": "failed_recovery_b",
+          "log_pattern": [
+            "SENSOR_READ",
+            "ALARM_TRIGGER",
+            "WATCHDOG_TICK",
+            "ACTUATOR_CMD",
+            "SENSOR_READ",
+            "ALARM_CLEAR",
+            "WATCHDOG_TICK",
+            "ALARM_TRIGGER"
+          ],
+          "state_pattern": [
+            "RUNNING",
+            "WARNING",
+            "WARNING",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "WARNING"
+          ]
+        },
+        {
+          "variant_id": 2,
+          "variant_name": "failed_recovery_c",
+          "log_pattern": [
+            "WATCHDOG_TICK",
+            "SENSOR_READ",
+            "ALARM_TRIGGER",
+            "ACTUATOR_CMD",
+            "SENSOR_READ",
+            "ALARM_CLEAR",
+            "WATCHDOG_TICK",
+            "ALARM_TRIGGER"
+          ],
+          "state_pattern": [
+            "RUNNING",
+            "RUNNING",
+            "WARNING",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "WARNING"
+          ]
+        }
+      ]
+    },
+    {
+      "behavior_id": 2,
+      "behavior_name": "Successful Communication Recovery",
+      "variants": [
+        {
+          "variant_id": 0,
+          "variant_name": "successful_comm_a",
+          "log_pattern": [
+            "SENSOR_READ",
+            "COMMUNICATION_ERROR",
+            "WATCHDOG_TICK",
+            "SENSOR_READ",
+            "COMMUNICATION_OK",
+            "WATCHDOG_TICK",
+            "COMMUNICATION_ERROR",
+            "COMMUNICATION_OK"
+          ],
+          "state_pattern": [
+            "RUNNING",
+            "WARNING",
+            "WARNING",
+            "WARNING",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "RUNNING"
+          ]
+        },
+        {
+          "variant_id": 1,
+          "variant_name": "successful_comm_b",
+          "log_pattern": [
+            "WATCHDOG_TICK",
+            "SENSOR_READ",
+            "COMMUNICATION_ERROR",
+            "SENSOR_READ",
+            "WATCHDOG_TICK",
+            "COMMUNICATION_OK",
+            "COMMUNICATION_ERROR",
+            "COMMUNICATION_OK"
+          ],
+          "state_pattern": [
+            "RUNNING",
+            "RUNNING",
+            "WARNING",
+            "WARNING",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "RUNNING"
+          ]
+        },
+        {
+          "variant_id": 2,
+          "variant_name": "successful_comm_c",
+          "log_pattern": [
+            "SENSOR_READ",
+            "COMMUNICATION_ERROR",
+            "SENSOR_READ",
+            "WATCHDOG_TICK",
+            "COMMUNICATION_OK",
+            "COMMUNICATION_ERROR",
+            "WATCHDOG_TICK",
+            "COMMUNICATION_OK"
+          ],
+          "state_pattern": [
+            "RUNNING",
+            "WARNING",
+            "WARNING",
+            "WARNING",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "RUNNING"
+          ]
+        }
+      ]
+    },
+    {
+      "behavior_id": 3,
+      "behavior_name": "Persistent Communication Failure",
+      "variants": [
+        {
+          "variant_id": 0,
+          "variant_name": "persistent_comm_a",
+          "log_pattern": [
+            "SENSOR_READ",
+            "COMMUNICATION_ERROR",
+            "WATCHDOG_TICK",
+            "SENSOR_READ",
+            "COMMUNICATION_OK",
+            "WATCHDOG_TICK",
+            "COMMUNICATION_OK",
+            "COMMUNICATION_ERROR"
+          ],
+          "state_pattern": [
+            "RUNNING",
+            "WARNING",
+            "WARNING",
+            "WARNING",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "WARNING"
+          ]
+        },
+        {
+          "variant_id": 1,
+          "variant_name": "persistent_comm_b",
+          "log_pattern": [
+            "WATCHDOG_TICK",
+            "SENSOR_READ",
+            "COMMUNICATION_ERROR",
+            "SENSOR_READ",
+            "WATCHDOG_TICK",
+            "COMMUNICATION_OK",
+            "COMMUNICATION_OK",
+            "COMMUNICATION_ERROR"
+          ],
+          "state_pattern": [
+            "RUNNING",
+            "RUNNING",
+            "WARNING",
+            "WARNING",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "WARNING"
+          ]
+        },
+        {
+          "variant_id": 2,
+          "variant_name": "persistent_comm_c",
+          "log_pattern": [
+            "SENSOR_READ",
+            "COMMUNICATION_ERROR",
+            "SENSOR_READ",
+            "WATCHDOG_TICK",
+            "COMMUNICATION_OK",
+            "WATCHDOG_TICK",
+            "COMMUNICATION_OK",
+            "COMMUNICATION_ERROR"
+          ],
+          "state_pattern": [
+            "RUNNING",
+            "WARNING",
+            "WARNING",
+            "WARNING",
+            "RECOVERY",
+            "RECOVERY",
+            "RECOVERY",
+            "WARNING"
+          ]
+        }
+      ]
+    }
+  ]
+}

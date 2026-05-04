@@ -1,0 +1,7 @@
+run_name: ts2vec_style_v3_e80
+embedding_file: experiments/behavior_log/artifacts/runs/ts2vec_style_v3_e80/window_embeddings.npz
+output_dir: experiments/behavior_log/artifacts/runs/ts2vec_style_v3_e80/evaluation
+metrics_file: metrics.json
+knn_k: 3
+logistic_max_iter: 2000
+retrieval_k: 5

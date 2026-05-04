@@ -1,0 +1,6 @@
+run_name: bigram_count_v4
+window_file: experiments/behavior_log/artifacts/datasets/latent_behavior_sequence_v4/windows/windows.npz
+output_dir: experiments/behavior_log/artifacts/runs/bigram_count_v4
+method: bigram_count
+state_file: representation_state.json
+summary_file: representation_summary.json
