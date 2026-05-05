@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM pytorch/pytorch:2.7.0-cuda12.6-cudnn9-runtime
 
 # Set working directory
 WORKDIR /app
@@ -6,13 +6,17 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Important: do not include torch / torchvision / torchaudio in requirements.txt,
+# because the PyTorch CUDA image already includes GPU-enabled PyTorch.
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
 # Copy project files
 COPY . .

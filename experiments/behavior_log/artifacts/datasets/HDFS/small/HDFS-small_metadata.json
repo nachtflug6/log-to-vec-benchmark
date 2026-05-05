@@ -1,0 +1,41 @@
+{
+  "input_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/HDFS/raw/HDFS_raw.csv",
+  "output_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/HDFS/small/HDFS-small.csv",
+  "selected_blocks_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/HDFS/small/HDFS-small_selected_blocks.csv",
+  "event_traces_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/HDFS/small/Event_traces.csv",
+  "event_occurrence_matrix_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/HDFS/small/Event_occurrence_matrix.csv",
+  "seed": 42,
+  "requested_block_counts": {
+    "Normal": 4000,
+    "Anomaly": 1000
+  },
+  "sampled_block_counts": {
+    "Normal": 4000,
+    "Anomaly": 1000,
+    "Total": 5000
+  },
+  "row_counts": {
+    "Normal": 78037,
+    "Anomaly": 16521,
+    "Total": 94558
+  },
+  "event_traces": {
+    "path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/HDFS/small/Event_traces.csv",
+    "block_count": 5000,
+    "label_counts": {
+      "Normal": 4000,
+      "Anomaly": 1000
+    },
+    "average_trace_length": 18.9116,
+    "max_trace_length": 48,
+    "average_latency": 16272.531,
+    "max_latency": 53876
+  },
+  "event_occurrence_matrix": {
+    "path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/HDFS/small/Event_occurrence_matrix.csv",
+    "block_count": 5000,
+    "event_feature_count": 32,
+    "average_nonzero_events_per_block": 7.1712,
+    "max_nonzero_events_per_block": 16
+  }
+}

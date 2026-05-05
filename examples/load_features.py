@@ -32,6 +32,12 @@ def main():
         default="data/preprocessor.json",
         help="Path to preprocessor state file (.json)"
     )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Limit number of samples to load for preview (default: load all)"
+    )
     
     args = parser.parse_args()
     
@@ -54,6 +60,11 @@ def main():
     # Extract features
     feature_matrix = data['features']
     feature_names = data['feature_names'].tolist()
+    
+    # Apply limit if specified
+    if args.limit is not None and args.limit < feature_matrix.shape[0]:
+        feature_matrix = feature_matrix[:args.limit]
+        print(f"\nLimited to first {args.limit} samples for preview")
     
     print(f"\n{'='*60}")
     print("Feature Matrix")
@@ -98,6 +109,11 @@ def main():
     # If sequences exist, analyze them
     if 'sequences' in data:
         sequences = data['sequences']
+        
+        # Apply limit to sequences if specified
+        if args.limit is not None and args.limit < sequences.shape[0]:
+            sequences = sequences[:args.limit]
+        
         sequence_length = data.get('sequence_length', sequences.shape[1])
         stride = data.get('stride', sequence_length)
         

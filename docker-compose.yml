@@ -1,0 +1,9 @@
+services:
+  app:
+    build: .
+    image: log-to-vec
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: bash
+    gpus: all

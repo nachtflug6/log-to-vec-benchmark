@@ -1,0 +1,416 @@
+{
+  "input_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/HDFS/raw/HDFS_raw.csv",
+  "total_rows": 11167740,
+  "max_rows": null,
+  "fields": {
+    "EventId": {
+      "unique_values": 46,
+      "nonempty_rows": 11167740,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 0.15430445193029207,
+        "top_5": 0.7394703852346133,
+        "top_10": 0.9970161375533456,
+        "top_20": 0.9999597949092655,
+        "top_50": 1.0,
+        "top_100": 1.0
+      }
+    },
+    "BlockId": {
+      "unique_values": 575061,
+      "nonempty_rows": 11167740,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 2.6594458681881922e-05,
+        "top_5": 0.00012661469554269708,
+        "top_10": 0.00024812540406563905,
+        "top_20": 0.00048810233762605507,
+        "top_50": 0.0010099626244880343,
+        "top_100": 0.001212958038063207
+      }
+    },
+    "Label": {
+      "unique_values": 2,
+      "nonempty_rows": 11167740,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 0.9746743745825028,
+        "top_5": 1.0,
+        "top_10": 1.0,
+        "top_20": 1.0,
+        "top_50": 1.0,
+        "top_100": 1.0
+      }
+    },
+    "Level": {
+      "unique_values": 2,
+      "nonempty_rows": 11167740,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 0.9676015021839692,
+        "top_5": 1.0,
+        "top_10": 1.0,
+        "top_20": 1.0,
+        "top_50": 1.0,
+        "top_100": 1.0
+      }
+    },
+    "Pid": {
+      "unique_values": 27799,
+      "nonempty_rows": 11167740,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 0.11478347454364088,
+        "top_5": 0.2815877697725771,
+        "top_10": 0.4242887101597996,
+        "top_20": 0.46824200778313246,
+        "top_50": 0.4690469154905111,
+        "top_100": 0.4703692063031553
+      }
+    },
+    "Component": {
+      "unique_values": 9,
+      "nonempty_rows": 11167740,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 0.33124607127314926,
+        "top_5": 0.9992059270720844,
+        "top_10": 1.0,
+        "top_20": 1.0,
+        "top_50": 1.0,
+        "top_100": 1.0
+      }
+    }
+  },
+  "top_values": {
+    "EventId": [
+      [
+        "E42",
+        1723232
+      ],
+      [
+        "E22",
+        1719741
+      ],
+      [
+        "E31",
+        1706679
+      ],
+      [
+        "E41",
+        1706514
+      ],
+      [
+        "E44",
+        1402047
+      ],
+      [
+        "E28",
+        1396174
+      ],
+      [
+        "E34",
+        575061
+      ],
+      [
+        "E45",
+        428726
+      ],
+      [
+        "E38",
+        356207
+      ],
+      [
+        "E40",
+        120036
+      ],
+      [
+        "E39",
+        7097
+      ],
+      [
+        "E32",
+        7002
+      ],
+      [
+        "E43",
+        6937
+      ],
+      [
+        "E18",
+        5545
+      ],
+      [
+        "E13",
+        3226
+      ],
+      [
+        "E36",
+        1464
+      ],
+      [
+        "E8",
+        1288
+      ],
+      [
+        "E33",
+        165
+      ],
+      [
+        "E11",
+        75
+      ],
+      [
+        "E15",
+        75
+      ]
+    ],
+    "BlockId": [
+      [
+        "blk_-4145674605155741075",
+        297
+      ],
+      [
+        "blk_-2891794341254261063",
+        284
+      ],
+      [
+        "blk_2813981518546746323",
+        279
+      ],
+      [
+        "blk_-2825351351457839825",
+        277
+      ],
+      [
+        "blk_9014620365357651780",
+        277
+      ],
+      [
+        "blk_-3907603481176056256",
+        274
+      ],
+      [
+        "blk_-7185835789497405029",
+        273
+      ],
+      [
+        "blk_-9204682504804436825",
+        273
+      ],
+      [
+        "blk_2866275036574950116",
+        269
+      ],
+      [
+        "blk_-1608999687919862906",
+        268
+      ],
+      [
+        "blk_-5820341108159367267",
+        268
+      ],
+      [
+        "blk_-1188252971231200744",
+        268
+      ],
+      [
+        "blk_-8333455052087360327",
+        268
+      ],
+      [
+        "blk_5762192118127023083",
+        268
+      ],
+      [
+        "blk_1535304869644844460",
+        268
+      ],
+      [
+        "blk_-5224041993350565248",
+        268
+      ],
+      [
+        "blk_-2441955257349686679",
+        268
+      ],
+      [
+        "blk_882800786376827329",
+        268
+      ],
+      [
+        "blk_5351989758085444015",
+        268
+      ],
+      [
+        "blk_-1016453873803095686",
+        268
+      ]
+    ],
+    "Label": [
+      [
+        "Normal",
+        10884910
+      ],
+      [
+        "Anomaly",
+        282830
+      ]
+    ],
+    "Level": [
+      [
+        "INFO",
+        10805922
+      ],
+      [
+        "WARN",
+        361818
+      ]
+    ],
+    "Pid": [
+      [
+        "19",
+        1281872
+      ],
+      [
+        "28",
+        539665
+      ],
+      [
+        "27",
+        443984
+      ],
+      [
+        "26",
+        441292
+      ],
+      [
+        "30",
+        437886
+      ],
+      [
+        "35",
+        339298
+      ],
+      [
+        "34",
+        338849
+      ],
+      [
+        "32",
+        338633
+      ],
+      [
+        "29",
+        338342
+      ],
+      [
+        "33",
+        238525
+      ],
+      [
+        "31",
+        235793
+      ],
+      [
+        "18",
+        132891
+      ],
+      [
+        "13",
+        120036
+      ],
+      [
+        "10732",
+        309
+      ],
+      [
+        "9577",
+        307
+      ],
+      [
+        "9615",
+        306
+      ],
+      [
+        "10648",
+        305
+      ],
+      [
+        "15046",
+        305
+      ],
+      [
+        "19216",
+        304
+      ],
+      [
+        "9591",
+        303
+      ]
+    ],
+    "Component": [
+      [
+        "dfs.FSNamesystem:",
+        3699270
+      ],
+      [
+        "dfs.DataNode$PacketResponder:",
+        3413301
+      ],
+      [
+        "dfs.DataNode$DataXceiver:",
+        2518658
+      ],
+      [
+        "dfs.FSDataset:",
+        1407597
+      ],
+      [
+        "dfs.DataBlockScanner:",
+        120046
+      ],
+      [
+        "dfs.DataNode$DataTransfer:",
+        6946
+      ],
+      [
+        "dfs.DataNode$BlockReceiver:",
+        1710
+      ],
+      [
+        "dfs.DataNode:",
+        165
+      ],
+      [
+        "dfs.PendingReplicationBlocks$PendingReplicationMonitor:",
+        47
+      ]
+    ]
+  },
+  "event_traces": {
+    "path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/HDFS/analysis/basic_distributions/Event_traces.csv",
+    "block_count": 575061,
+    "label_counts": {
+      "Normal": 558223,
+      "Anomaly": 16838
+    },
+    "average_trace_length": 19.420096302827005,
+    "max_trace_length": 297,
+    "average_latency": 16789.469687563582,
+    "max_latency": 54025
+  },
+  "event_occurrence_matrix": {
+    "path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/HDFS/analysis/basic_distributions/Event_occurrence_matrix.csv",
+    "block_count": 575061,
+    "event_feature_count": 46,
+    "average_nonzero_events_per_block": 7.241776089840904,
+    "max_nonzero_events_per_block": 26
+  }
+}
