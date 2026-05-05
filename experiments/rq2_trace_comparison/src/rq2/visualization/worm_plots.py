@@ -17,16 +17,51 @@ import matplotlib.cm as cm
 import matplotlib.patches as mpatches
 from matplotlib.collections import LineCollection
 from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+
+try:
+    import umap as _umap_module
+    _HAS_UMAP = True
+except ImportError:
+    _HAS_UMAP = False
 
 
 # Consistent color palette for up to 6 modes
 _MODE_COLORS = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#a65628"]
 
 
-def _fit_pca_2d(embeddings: np.ndarray) -> Tuple[PCA, np.ndarray]:
-    pca = PCA(n_components=2, random_state=0)
+def _fit_pca_2d(embeddings: np.ndarray) -> Tuple[np.ndarray, str]:
+    """Returns (emb_2d, subtitle) where subtitle reports variance explained."""
+    n_comp = min(2, embeddings.shape[1], embeddings.shape[0] - 1)
+    pca = PCA(n_components=n_comp, random_state=0)
     emb_2d = pca.fit_transform(embeddings)
-    return pca, emb_2d
+    var = pca.explained_variance_ratio_.sum()
+    subtitle = f"PC1+PC2 explain {var:.1%} of variance"
+    return emb_2d, subtitle
+
+
+def _fit_umap_2d(embeddings: np.ndarray) -> Tuple[np.ndarray, str]:
+    """Returns (emb_2d, method_label). Uses UMAP if available, t-SNE otherwise."""
+    if _HAS_UMAP:
+        reducer = _umap_module.UMAP(
+            n_components=2,
+            n_neighbors=15,
+            min_dist=0.1,
+            random_state=42,
+            verbose=False,
+        )
+        emb_2d = reducer.fit_transform(embeddings)
+        return emb_2d, "UMAP"
+    else:
+        perplexity = min(30, max(5, len(embeddings) // 4))
+        reducer = TSNE(
+            n_components=2,
+            perplexity=perplexity,
+            random_state=42,
+            n_iter=500,
+        )
+        emb_2d = reducer.fit_transform(embeddings)
+        return emb_2d, f"t-SNE (perplexity={perplexity})"
 
 
 def _mode_color(mode_id: int) -> str:
@@ -64,7 +99,75 @@ def _draw_confidence_ellipse(ax, pts: np.ndarray, color: str, n_std: float = 1.0
 
 
 # ---------------------------------------------------------------------------
-# Plot 1: PCA worm plot (full production run, colored by time)
+# Shared 2D rendering helpers (projection-agnostic)
+# ---------------------------------------------------------------------------
+
+def _render_worm(ax: plt.Axes, emb_2d: np.ndarray, mode_ids: np.ndarray,
+                 xlabel: str, ylabel: str) -> None:
+    N = len(emb_2d)
+    points = emb_2d.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+    lc = LineCollection(segments, cmap="plasma", linewidth=1.2, alpha=0.8)
+    lc.set_array(np.linspace(0, 1, N - 1))
+    ax.add_collection(lc)
+    for m in np.unique(mode_ids):
+        mask = mode_ids == m
+        ax.scatter(emb_2d[mask, 0], emb_2d[mask, 1],
+                   color=_mode_color(m), s=12, alpha=0.5, label=f"Mode {m}", zorder=3)
+    ax.scatter(*emb_2d[0], color="black", s=60, marker="o", zorder=5, label="Start")
+    ax.scatter(*emb_2d[-1], color="black", s=60, marker="X", zorder=5, label="End")
+    cbar = ax.get_figure().colorbar(cm.ScalarMappable(cmap="plasma"), ax=ax,
+                                    fraction=0.04, pad=0.02)
+    cbar.set_label("Time →")
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.legend(loc="upper right", fontsize=8, framealpha=0.6)
+    ax.set_aspect("equal", adjustable="datalim")
+
+
+def _render_mode_loops(ax: plt.Axes, emb_2d: np.ndarray, mode_ids: np.ndarray,
+                       change_point_windows: List[int], xlabel: str, ylabel: str) -> None:
+    boundaries = sorted(set([0] + list(change_point_windows) + [len(emb_2d)]))
+    seen_modes: set = set()
+    for start, end in zip(boundaries[:-1], boundaries[1:]):
+        if end <= start:
+            continue
+        seg_labels = mode_ids[start:end]
+        unique, counts = np.unique(seg_labels, return_counts=True)
+        m = int(unique[counts.argmax()])
+        seg_2d = emb_2d[start:end]
+        label = f"Mode {m}" if m not in seen_modes else None
+        ax.plot(seg_2d[:, 0], seg_2d[:, 1], color=_mode_color(m),
+                alpha=0.4, linewidth=1.0, label=label)
+        seen_modes.add(m)
+    for m in np.unique(mode_ids):
+        pts = emb_2d[mode_ids == m]
+        ax.scatter(*pts.mean(axis=0), color=_mode_color(m), s=80,
+                   marker="+", linewidths=2, zorder=5)
+        _draw_confidence_ellipse(ax, pts, color=_mode_color(m))
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.legend(loc="upper right", fontsize=8, framealpha=0.6)
+    ax.set_aspect("equal", adjustable="datalim")
+
+
+def _render_centroids(ax: plt.Axes, emb_2d: np.ndarray, mode_ids: np.ndarray,
+                      xlabel: str, ylabel: str) -> None:
+    for m in np.unique(mode_ids):
+        pts = emb_2d[mode_ids == m]
+        color = _mode_color(m)
+        ax.scatter(pts[:, 0], pts[:, 1], color=color, s=8, alpha=0.25)
+        ax.scatter(*pts.mean(axis=0), color=color, s=120, marker="*",
+                   zorder=5, label=f"Mode {m}")
+        _draw_confidence_ellipse(ax, pts, color=color, n_std=1.0)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.legend(loc="upper right", fontsize=8, framealpha=0.6)
+    ax.set_aspect("equal", adjustable="datalim")
+
+
+# ---------------------------------------------------------------------------
+# Plot 1: PCA worm plot
 # ---------------------------------------------------------------------------
 
 def plot_worm(
@@ -73,58 +176,19 @@ def plot_worm(
     title: str = "PCA Worm Plot",
     save_path: Optional[Path] = None,
 ) -> plt.Figure:
-    """Worm plot: PC1 vs PC2, colored continuously by time index.
-
-    Arrows show trajectory direction. Mode regions are lightly annotated.
-    """
-    _, emb_2d = _fit_pca_2d(embeddings)
-    N = len(emb_2d)
-
+    emb_2d, subtitle = _fit_pca_2d(embeddings)
     fig, ax = plt.subplots(figsize=(7, 6))
-
-    # Draw colored line segments (time = color)
-    points = emb_2d.reshape(-1, 1, 2)
-    segments = np.concatenate([points[:-1], points[1:]], axis=1)
-    lc = LineCollection(segments, cmap="plasma", linewidth=1.2, alpha=0.8)
-    lc.set_array(np.linspace(0, 1, N - 1))
-    ax.add_collection(lc)
-
-    # Mode-colored scatter (small dots)
-    for m in np.unique(mode_ids):
-        mask = mode_ids == m
-        ax.scatter(
-            emb_2d[mask, 0],
-            emb_2d[mask, 1],
-            color=_mode_color(m),
-            s=12,
-            alpha=0.5,
-            label=f"Mode {m}",
-            zorder=3,
-        )
-
-    # Start / end markers
-    ax.scatter(*emb_2d[0], color="black", s=60, marker="o", zorder=5, label="Start")
-    ax.scatter(*emb_2d[-1], color="black", s=60, marker="X", zorder=5, label="End")
-
-    cbar = fig.colorbar(cm.ScalarMappable(cmap="plasma"), ax=ax, fraction=0.04, pad=0.02)
-    cbar.set_label("Time →")
-
-    ax.set_xlabel("PC 1")
-    ax.set_ylabel("PC 2")
-    ax.set_title(title)
-    ax.legend(loc="upper right", fontsize=8, framealpha=0.6)
-    ax.set_aspect("equal", adjustable="datalim")
+    _render_worm(ax, emb_2d, mode_ids, "PC 1", "PC 2")
+    ax.set_title(f"{title}\n{subtitle}", fontsize=10)
     fig.tight_layout()
-
     if save_path is not None:
         fig.savefig(save_path, dpi=120, bbox_inches="tight")
         plt.close(fig)
-
     return fig
 
 
 # ---------------------------------------------------------------------------
-# Plot 2: Mode loop overlay (all repetitions of each mode overlaid)
+# Plot 2: Mode loop overlay
 # ---------------------------------------------------------------------------
 
 def plot_mode_loops(
@@ -134,51 +198,14 @@ def plot_mode_loops(
     title: str = "Mode Loop Overlay",
     save_path: Optional[Path] = None,
 ) -> plt.Figure:
-    """Overlay all contiguous segments of the same mode in PCA space.
-
-    Each repetition of mode A is drawn in a semi-transparent line;
-    the centroid is marked with a cross.
-    """
-    _, emb_2d = _fit_pca_2d(embeddings)
-
+    emb_2d, subtitle = _fit_pca_2d(embeddings)
     fig, ax = plt.subplots(figsize=(7, 6))
-
-    # Segment the trace into contiguous mode runs
-    boundaries = sorted(set([0] + list(change_point_windows) + [len(embeddings)]))
-    seen_modes = set()
-
-    for start, end in zip(boundaries[:-1], boundaries[1:]):
-        if end <= start:
-            continue
-        seg_labels = mode_ids[start:end]
-        unique, counts = np.unique(seg_labels, return_counts=True)
-        m = int(unique[counts.argmax()])
-        color = _mode_color(m)
-
-        seg_2d = emb_2d[start:end]
-        label = f"Mode {m}" if m not in seen_modes else None
-        ax.plot(seg_2d[:, 0], seg_2d[:, 1], color=color, alpha=0.4, linewidth=1.0, label=label)
-        seen_modes.add(m)
-
-    # Draw per-mode centroids and ellipses
-    for m in np.unique(mode_ids):
-        pts = emb_2d[mode_ids == m]
-        centroid = pts.mean(axis=0)
-        color = _mode_color(m)
-        ax.scatter(*centroid, color=color, s=80, marker="+", linewidths=2, zorder=5)
-        _draw_confidence_ellipse(ax, pts, color=color)
-
-    ax.set_xlabel("PC 1")
-    ax.set_ylabel("PC 2")
-    ax.set_title(title)
-    ax.legend(loc="upper right", fontsize=8, framealpha=0.6)
-    ax.set_aspect("equal", adjustable="datalim")
+    _render_mode_loops(ax, emb_2d, mode_ids, change_point_windows, "PC 1", "PC 2")
+    ax.set_title(f"{title}\n{subtitle}", fontsize=10)
     fig.tight_layout()
-
     if save_path is not None:
         fig.savefig(save_path, dpi=120, bbox_inches="tight")
         plt.close(fig)
-
     return fig
 
 
@@ -192,29 +219,71 @@ def plot_centroids(
     title: str = "Mode Centroids (PCA)",
     save_path: Optional[Path] = None,
 ) -> plt.Figure:
-    _, emb_2d = _fit_pca_2d(embeddings)
-
+    emb_2d, subtitle = _fit_pca_2d(embeddings)
     fig, ax = plt.subplots(figsize=(6, 5))
-
-    for m in np.unique(mode_ids):
-        pts = emb_2d[mode_ids == m]
-        color = _mode_color(m)
-        ax.scatter(pts[:, 0], pts[:, 1], color=color, s=8, alpha=0.25)
-        centroid = pts.mean(axis=0)
-        ax.scatter(*centroid, color=color, s=120, marker="*", zorder=5, label=f"Mode {m}")
-        _draw_confidence_ellipse(ax, pts, color=color, n_std=1.0)
-
-    ax.set_xlabel("PC 1")
-    ax.set_ylabel("PC 2")
-    ax.set_title(title)
-    ax.legend(loc="upper right", fontsize=8, framealpha=0.6)
-    ax.set_aspect("equal", adjustable="datalim")
+    _render_centroids(ax, emb_2d, mode_ids, "PC 1", "PC 2")
+    ax.set_title(f"{title}\n{subtitle}", fontsize=10)
     fig.tight_layout()
-
     if save_path is not None:
         fig.savefig(save_path, dpi=120, bbox_inches="tight")
         plt.close(fig)
+    return fig
 
+
+# ---------------------------------------------------------------------------
+# Plots 1–3 UMAP/t-SNE variants
+# ---------------------------------------------------------------------------
+
+def plot_umap_worm(
+    embeddings: np.ndarray,
+    mode_ids: np.ndarray,
+    title: str = "UMAP Worm Plot",
+    save_path: Optional[Path] = None,
+) -> plt.Figure:
+    emb_2d, method = _fit_umap_2d(embeddings)
+    fig, ax = plt.subplots(figsize=(7, 6))
+    _render_worm(ax, emb_2d, mode_ids, f"{method} 1", f"{method} 2")
+    ax.set_title(f"{title}\n({method})", fontsize=10)
+    fig.tight_layout()
+    if save_path is not None:
+        fig.savefig(save_path, dpi=120, bbox_inches="tight")
+        plt.close(fig)
+    return fig
+
+
+def plot_umap_mode_loops(
+    embeddings: np.ndarray,
+    mode_ids: np.ndarray,
+    change_point_windows: List[int],
+    title: str = "Mode Loop Overlay",
+    save_path: Optional[Path] = None,
+) -> plt.Figure:
+    emb_2d, method = _fit_umap_2d(embeddings)
+    fig, ax = plt.subplots(figsize=(7, 6))
+    _render_mode_loops(ax, emb_2d, mode_ids, change_point_windows,
+                       f"{method} 1", f"{method} 2")
+    ax.set_title(f"{title}\n({method})", fontsize=10)
+    fig.tight_layout()
+    if save_path is not None:
+        fig.savefig(save_path, dpi=120, bbox_inches="tight")
+        plt.close(fig)
+    return fig
+
+
+def plot_umap_centroids(
+    embeddings: np.ndarray,
+    mode_ids: np.ndarray,
+    title: str = "Mode Centroids",
+    save_path: Optional[Path] = None,
+) -> plt.Figure:
+    emb_2d, method = _fit_umap_2d(embeddings)
+    fig, ax = plt.subplots(figsize=(6, 5))
+    _render_centroids(ax, emb_2d, mode_ids, f"{method} 1", f"{method} 2")
+    ax.set_title(f"{title}\n({method})", fontsize=10)
+    fig.tight_layout()
+    if save_path is not None:
+        fig.savefig(save_path, dpi=120, bbox_inches="tight")
+        plt.close(fig)
     return fig
 
 
@@ -315,11 +384,16 @@ def save_all_plots(
     output_dir: Path,
     prefix: str = "",
 ) -> None:
-    """Save all 5 plot types to output_dir with the given prefix."""
+    """Save all plot types to output_dir with the given prefix.
+
+    PCA plots (5): worm, mode_loops, centroids, centroid_distance, distance_heatmap
+    UMAP/t-SNE plots (3): umap_worm, umap_mode_loops, umap_centroids
+    """
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     p = f"{prefix}_" if prefix else ""
 
+    # PCA plots
     plot_worm(
         embeddings, mode_ids,
         title=f"PCA Worm — {prefix}",
@@ -327,12 +401,12 @@ def save_all_plots(
     )
     plot_mode_loops(
         embeddings, mode_ids, change_point_windows,
-        title=f"Mode Loops — {prefix}",
+        title=f"Mode Loops (PCA) — {prefix}",
         save_path=output_dir / f"{p}mode_loops.png",
     )
     plot_centroids(
         embeddings, mode_ids,
-        title=f"Centroids — {prefix}",
+        title=f"Centroids (PCA) — {prefix}",
         save_path=output_dir / f"{p}centroids.png",
     )
     plot_centroid_distance_over_time(
@@ -344,4 +418,21 @@ def save_all_plots(
         embeddings, mode_ids,
         title=f"Mode Distance Heatmap — {prefix}",
         save_path=output_dir / f"{p}distance_heatmap.png",
+    )
+
+    # UMAP / t-SNE plots
+    plot_umap_worm(
+        embeddings, mode_ids,
+        title=f"UMAP Worm — {prefix}",
+        save_path=output_dir / f"{p}umap_worm.png",
+    )
+    plot_umap_mode_loops(
+        embeddings, mode_ids, change_point_windows,
+        title=f"Mode Loops (UMAP) — {prefix}",
+        save_path=output_dir / f"{p}umap_mode_loops.png",
+    )
+    plot_umap_centroids(
+        embeddings, mode_ids,
+        title=f"Centroids (UMAP) — {prefix}",
+        save_path=output_dir / f"{p}umap_centroids.png",
     )

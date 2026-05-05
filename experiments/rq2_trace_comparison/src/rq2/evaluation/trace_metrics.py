@@ -11,6 +11,7 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from sklearn.decomposition import PCA
+from sklearn.metrics import silhouette_score as _sklearn_silhouette
 
 
 # ---------------------------------------------------------------------------
@@ -223,7 +224,43 @@ def transition_sharpness(
 
 
 # ---------------------------------------------------------------------------
-# Metric 4: PCA Loop Compactness
+# Metric 4a: Silhouette Score (full embedding space)
+# ---------------------------------------------------------------------------
+
+def silhouette_score_full(
+    embeddings: np.ndarray,
+    mode_ids: np.ndarray,
+    max_samples: int = 2000,
+    random_state: int = 0,
+) -> float:
+    """Mean silhouette coefficient computed in the full embedding space.
+
+    Higher is better (+1 = perfect separation, 0 = overlapping, -1 = wrong cluster).
+    Downsampled to max_samples for speed when the dataset is large.
+    Returns nan if fewer than 2 modes or fewer than 2 samples per mode.
+    """
+    unique_modes = np.unique(mode_ids)
+    if len(unique_modes) < 2:
+        return float("nan")
+    for m in unique_modes:
+        if (mode_ids == m).sum() < 2:
+            return float("nan")
+
+    n = len(embeddings)
+    if n > max_samples:
+        rng = np.random.default_rng(random_state)
+        idx = rng.choice(n, size=max_samples, replace=False)
+        embeddings = embeddings[idx]
+        mode_ids = mode_ids[idx]
+
+    try:
+        return float(_sklearn_silhouette(embeddings, mode_ids))
+    except Exception:
+        return float("nan")
+
+
+# ---------------------------------------------------------------------------
+# Metric 4b: PCA Loop Compactness
 # ---------------------------------------------------------------------------
 
 def pca_loop_compactness(
@@ -241,7 +278,8 @@ def pca_loop_compactness(
     except ImportError:
         return {}
 
-    pca = PCA(n_components=2, random_state=0)
+    n_components = min(2, embeddings.shape[1], embeddings.shape[0] - 1)
+    pca = PCA(n_components=n_components, random_state=0)
     emb_2d = pca.fit_transform(embeddings)
 
     unique_modes = np.unique(mode_ids)
@@ -272,6 +310,24 @@ def pca_loop_compactness(
         compactness[m] = area / (scale ** 2) if not np.isnan(area) else float("nan")
 
     return compactness
+
+
+# ---------------------------------------------------------------------------
+# Metric 4c: PCA Variance Explained (diagnostic, not a quality metric)
+# ---------------------------------------------------------------------------
+
+def pca_variance_explained(embeddings: np.ndarray, n_components: int = 2) -> float:
+    """Fraction of variance captured by the top n_components PCs.
+
+    Values close to 1.0 mean the 2D PCA projection is faithful.
+    Values close to 0.0 mean the projection discards most structure (e.g. MOMENT 768-dim).
+    """
+    n_comp = min(n_components, embeddings.shape[1], embeddings.shape[0] - 1)
+    if n_comp < 1:
+        return float("nan")
+    pca = PCA(n_components=n_comp, random_state=0)
+    pca.fit(embeddings)
+    return float(pca.explained_variance_ratio_.sum())
 
 
 # ---------------------------------------------------------------------------
@@ -323,6 +379,8 @@ def compute_all_metrics(
     results: dict = {}
 
     results["mode_separability_index"] = mode_separability_index(embeddings, mode_ids)
+    results["silhouette_score"] = silhouette_score_full(embeddings, mode_ids)
+    results["pca_variance_explained"] = pca_variance_explained(embeddings, n_components=2)
 
     if per_trajectory_segments is not None:
         lc = loop_consistency(per_trajectory_segments)
