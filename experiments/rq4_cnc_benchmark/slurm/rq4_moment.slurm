@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=rq4_moment
-#SBATCH --account=NAISS2024-5-XXX
-#SBATCH --gpus-per-node=A40:1
-#SBATCH --time=02:00:00
-#SBATCH --output=logs/rq4_moment_%j.out
-#SBATCH --error=logs/rq4_moment_%j.err
+#SBATCH --account=naiss2026-4-91
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --gpus-per-node=T4:1
+#SBATCH --cpus-per-task=4
+#SBATCH --time=01:00:00
+#SBATCH --output=logs/rq4/%x_%j.out
+#SBATCH --error=logs/rq4/%x_%j.err
 
 set -euo pipefail
 
@@ -25,10 +28,13 @@ apptainer exec --nv --pwd "${ALVIS_REPO}" "${ALVIS_IMAGE}" \
     --output_dir "${RQ4_DIR}/results/data"
 
 echo "[2] Extracting MOMENT embeddings..."
-apptainer exec --nv --pwd "${ALVIS_REPO}" "${ALVIS_IMAGE}" \
+apptainer exec --nv --pwd "${ALVIS_REPO}" \
+  --env TRANSFORMERS_OFFLINE=1 \
+  "${ALVIS_IMAGE}" \
   python -u "${RQ4_DIR}/scripts/03_extract_moment.py" \
-    --data_dir    "${RQ4_DIR}/results/data" \
-    --output_dir  "${RQ4_DIR}/results/embeddings" \
-    --batch_size  64
+    --data_dir   "${RQ4_DIR}/results/data" \
+    --output_dir "${RQ4_DIR}/results/embeddings" \
+    --device     cuda \
+    --batch_size 64
 
 echo "=== MOMENT done ==="

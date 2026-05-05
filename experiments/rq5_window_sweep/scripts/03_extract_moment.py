@@ -27,19 +27,21 @@ from rq5.config.sweep import SCENARIO_IDS
 _MOMENT_LEN = 512
 
 
-def _load_moment():
+def _load_moment(device: str = "cpu"):
+    import torch
     from momentfm import MOMENTPipeline
     model = MOMENTPipeline.from_pretrained(
         "AutonLab/MOMENT-1-large", model_kwargs={"output_attentions": False}
     )
     model.init()
+    model.to(torch.device(device))
     return model
 
 
-def _embed_batch(model, X_batch: np.ndarray) -> np.ndarray:
+def _embed_batch(model, X_batch: np.ndarray, device: str = "cpu") -> np.ndarray:
     import torch
     with torch.no_grad():
-        t = torch.tensor(X_batch, dtype=torch.float32)
+        t = torch.tensor(X_batch, dtype=torch.float32).to(device)
         out = model(x_enc=t)
     return out.embeddings.cpu().numpy()
 
@@ -50,6 +52,7 @@ def parse_args():
     p.add_argument("--output_dir", default="../results/embeddings")
     p.add_argument("--scenarios",  nargs="+", default=None)
     p.add_argument("--batch_size", type=int, default=64)
+    p.add_argument("--device",     default="cpu")
     p.add_argument("--force",      action="store_true")
     return p.parse_args()
 
@@ -61,8 +64,8 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
     ids      = args.scenarios or SCENARIO_IDS
 
-    print("Loading MOMENT model...")
-    model = _load_moment()
+    print(f"Loading MOMENT model (device={args.device})...")
+    model = _load_moment(args.device)
 
     for sid in ids:
         out_path = out_dir / f"{sid}_moment.npz"
@@ -93,7 +96,7 @@ def main():
             batch = W_z[start:start + args.batch_size]     # [B, C, T]
             ch_embs = []
             for ch in range(C):
-                ch_embs.append(_embed_batch(model, batch[:, ch:ch+1, :]))
+                ch_embs.append(_embed_batch(model, batch[:, ch:ch+1, :], args.device))
             emb_list.append(np.stack(ch_embs, axis=1).mean(axis=1))
 
         embs = np.concatenate(emb_list, axis=0)
