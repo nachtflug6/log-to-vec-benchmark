@@ -23,19 +23,23 @@ import torch
 _RQ3_SRC = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(_RQ3_SRC))
 
-# Reuse DCC implementation from RQ2 without copying
+# Reuse DCC implementation from RQ2 without copying.
+# The file is named 03_train_ts2vec.py which Python cannot import directly
+# (module names cannot start with a digit), so we load it via importlib.
+import importlib.util as _ilu
 _RQ2_SCRIPTS = Path(__file__).parent.parent.parent / "rq2_trace_comparison" / "scripts"
-sys.path.insert(0, str(_RQ2_SCRIPTS))
+_spec = _ilu.spec_from_file_location("train_ts2vec", _RQ2_SCRIPTS / "03_train_ts2vec.py")
+_ts2vec_mod = _ilu.module_from_spec(_spec)
+_spec.loader.exec_module(_ts2vec_mod)
 
 from rq3.config.scenarios import SCENARIO_IDS, get_scenario
-from train_ts2vec import (  # noqa: E402  (rq2 script name)
-    TS2VecStyleEncoder,
-    WindowDataset,
-    _augment,
-    _nt_xent,
-    _run_epoch,
-    _export,
-)
+
+TS2VecStyleEncoder = _ts2vec_mod.TS2VecStyleEncoder
+WindowDataset      = _ts2vec_mod.WindowDataset
+_augment           = _ts2vec_mod._augment
+_nt_xent           = _ts2vec_mod._nt_xent
+_run_epoch         = _ts2vec_mod._run_epoch
+_export            = _ts2vec_mod._export
 
 
 def _augment_with_structural_mask(

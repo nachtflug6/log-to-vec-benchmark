@@ -32,10 +32,9 @@ echo "  RUN_ID=${RUN_ID}"
 echo "  ALVIS_REPO=${ALVIS_REPO}"
 echo "  CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-unset}"
 
-# Install momentfm into user site-packages (home dir is writable inside Apptainer)
-echo "[0/6] Installing momentfm..."
+echo "[0/6] Installing dependencies..."
 apptainer exec --nv --pwd "${ALVIS_REPO}" "${ALVIS_IMAGE}" \
-  pip install --user --quiet momentfm 2>&1 | tail -3
+  pip install --user --quiet momentfm scikit-learn matplotlib 2>&1 | tail -3
 
 cd "${RQ2_DIR}"
 
@@ -86,20 +85,24 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Step 3: Train TS2Vec on each problem
+# Step 3: Train TS2Vec on each problem (skip if already done)
 # ---------------------------------------------------------------------------
-echo "[3/6] Training TS2Vec encoders..."
-for PROBLEM in p1_simple_1d p2_multichannel p3_hard_noisy; do
-  echo "  Training on ${PROBLEM}..."
-  apptainer exec --nv --pwd "${ALVIS_REPO}" "${ALVIS_IMAGE}" \
-    python -u "${RQ2_DIR}/scripts/03_train_ts2vec.py" \
-      --data_dir "${DATA_DIR}" \
-      --output_dir "${EMB_DIR}" \
-      --problem "${PROBLEM}" \
-      --epochs "${TS2VEC_EPOCHS}" \
-      --seed "${SEED}" \
-      --device cuda
-done
+if [[ -f "${EMB_DIR}/p3_hard_noisy_ts2vec.npz" ]]; then
+  echo "[3/6] TS2Vec embeddings already exist, skipping training."
+else
+  echo "[3/6] Training TS2Vec encoders..."
+  for PROBLEM in p1_simple_1d p2_multichannel p3_hard_noisy; do
+    echo "  Training on ${PROBLEM}..."
+    apptainer exec --nv --pwd "${ALVIS_REPO}" "${ALVIS_IMAGE}" \
+      python -u "${RQ2_DIR}/scripts/03_train_ts2vec.py" \
+        --data_dir "${DATA_DIR}" \
+        --output_dir "${EMB_DIR}" \
+        --problem "${PROBLEM}" \
+        --epochs "${TS2VEC_EPOCHS}" \
+        --seed "${SEED}" \
+        --device cuda
+  done
+fi
 
 # ---------------------------------------------------------------------------
 # Step 4: Compute trace metrics
