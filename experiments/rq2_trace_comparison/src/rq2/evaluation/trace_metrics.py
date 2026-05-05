@@ -125,8 +125,9 @@ def loop_consistency(
 
         # Optional PCA reduction for speed
         all_seg = np.concatenate(segs, axis=0)
-        if all_seg.shape[1] > pca_dim:
-            pca = PCA(n_components=pca_dim, random_state=0)
+        actual_dim = min(pca_dim, all_seg.shape[1], all_seg.shape[0] - 1)
+        if all_seg.shape[1] > actual_dim and actual_dim >= 1:
+            pca = PCA(n_components=actual_dim, random_state=0)
             pca.fit(all_seg)
             segs_reduced = [pca.transform(s) for s in segs]
         else:

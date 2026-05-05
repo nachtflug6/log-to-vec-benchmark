@@ -58,7 +58,7 @@ def _fit_umap_2d(embeddings: np.ndarray) -> Tuple[np.ndarray, str]:
             n_components=2,
             perplexity=perplexity,
             random_state=42,
-            n_iter=500,
+            max_iter=500,
         )
         emb_2d = reducer.fit_transform(embeddings)
         return emb_2d, f"t-SNE (perplexity={perplexity})"
