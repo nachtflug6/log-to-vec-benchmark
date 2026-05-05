@@ -1,0 +1,83 @@
+[
+  {
+    "problem": "p1_simple_1d",
+    "model": "fft",
+    "mode_separability_index": 11.096797065065875,
+    "loop_consistency_mean": 66.57888751427332,
+    "transition_sharpness": 3.0,
+    "pca_loop_compactness_mean": 0.4989903494345955,
+    "centroid_stability_mean": 0.2893192221721013
+  },
+  {
+    "problem": "p1_simple_1d",
+    "model": "moment",
+    "mode_separability_index": 71.10904911551715,
+    "loop_consistency_mean": 2.7566254949197173,
+    "transition_sharpness": 5.666666666666667,
+    "pca_loop_compactness_mean": 0.23082415283537053,
+    "centroid_stability_mean": 0.0016591862464944522
+  },
+  {
+    "problem": "p1_simple_1d",
+    "model": "ts2vec",
+    "mode_separability_index": 20.001238175094915,
+    "loop_consistency_mean": 44.57314410805702,
+    "transition_sharpness": 3.0,
+    "pca_loop_compactness_mean": 0.37315849260110384,
+    "centroid_stability_mean": 0.08542736992239952
+  },
+  {
+    "problem": "p2_multichannel",
+    "model": "fft",
+    "mode_separability_index": 22.456584886635273,
+    "loop_consistency_mean": 146.13172000249224,
+    "transition_sharpness": 3.3333333333333335,
+    "pca_loop_compactness_mean": 0.26207847556603175,
+    "centroid_stability_mean": 0.27760477860768634
+  },
+  {
+    "problem": "p2_multichannel",
+    "model": "moment",
+    "mode_separability_index": 27.185531262145798,
+    "loop_consistency_mean": 1.4254638691743216,
+    "transition_sharpness": 1.6666666666666667,
+    "pca_loop_compactness_mean": 1.6273471493276415,
+    "centroid_stability_mean": 0.0008233739645220339
+  },
+  {
+    "problem": "p2_multichannel",
+    "model": "ts2vec",
+    "mode_separability_index": 4.425819264483799,
+    "loop_consistency_mean": 108.1795445839564,
+    "transition_sharpness": 3.6666666666666665,
+    "pca_loop_compactness_mean": 48.395605995298745,
+    "centroid_stability_mean": 0.5089909235636393
+  },
+  {
+    "problem": "p3_hard_noisy",
+    "model": "fft",
+    "mode_separability_index": 20.199573350841916,
+    "loop_consistency_mean": 167.40013240178425,
+    "transition_sharpness": 4.0,
+    "pca_loop_compactness_mean": 0.3324624247005696,
+    "centroid_stability_mean": 0.36380842328071594
+  },
+  {
+    "problem": "p3_hard_noisy",
+    "model": "moment",
+    "mode_separability_index": 14.336469938138922,
+    "loop_consistency_mean": 1.6449981736640134,
+    "transition_sharpness": 1.3333333333333333,
+    "pca_loop_compactness_mean": 7.966634297019276,
+    "centroid_stability_mean": 0.0012836009458017845
+  },
+  {
+    "problem": "p3_hard_noisy",
+    "model": "ts2vec",
+    "mode_separability_index": 4.5622851904912185,
+    "loop_consistency_mean": 107.795374306043,
+    "transition_sharpness": 4.0,
+    "pca_loop_compactness_mean": 55.86885810371296,
+    "centroid_stability_mean": 0.5285054842631022
+  }
+]

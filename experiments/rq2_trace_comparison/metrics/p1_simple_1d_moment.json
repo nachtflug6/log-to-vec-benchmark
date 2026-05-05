@@ -1,0 +1,27 @@
+{
+  "mode_separability_index": 71.10904911551715,
+  "loop_consistency_per_mode": {
+    "0": 3.2760610159486534,
+    "1": 2.6096064280718565,
+    "2": 2.384209040738642
+  },
+  "loop_consistency_mean": 2.7566254949197173,
+  "transition_sharpness": 5.666666666666667,
+  "pca_loop_compactness_per_mode": {
+    "0": 0.27613340594979924,
+    "1": 0.24891700097318598,
+    "2": 0.16742205158312637
+  },
+  "pca_loop_compactness_mean": 0.23082415283537053,
+  "centroid_stability_per_mode": {
+    "0": 0.0014744503423571587,
+    "1": 0.001676018931902945,
+    "2": 0.0018270894652232528
+  },
+  "centroid_stability_mean": 0.0016591862464944522,
+  "problem": "p1_simple_1d",
+  "model": "moment",
+  "num_windows_total": 1380,
+  "num_windows_eval": 207,
+  "embedding_dim": 768
+}

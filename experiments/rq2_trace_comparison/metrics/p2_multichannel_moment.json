@@ -1,0 +1,27 @@
+{
+  "mode_separability_index": 27.185531262145798,
+  "loop_consistency_per_mode": {
+    "0": 1.4911693789064884,
+    "1": 1.5485941730439663,
+    "2": 1.2366280555725098
+  },
+  "loop_consistency_mean": 1.4254638691743216,
+  "transition_sharpness": 1.6666666666666667,
+  "pca_loop_compactness_per_mode": {
+    "0": 1.8736138843146857,
+    "1": 1.804319841717155,
+    "2": 1.2041077219510843
+  },
+  "pca_loop_compactness_mean": 1.6273471493276415,
+  "centroid_stability_per_mode": {
+    "0": 0.0006798018584959209,
+    "1": 0.0008418434299528599,
+    "2": 0.000948476605117321
+  },
+  "centroid_stability_mean": 0.0008233739645220339,
+  "problem": "p2_multichannel",
+  "model": "moment",
+  "num_windows_total": 1380,
+  "num_windows_eval": 207,
+  "embedding_dim": 768
+}

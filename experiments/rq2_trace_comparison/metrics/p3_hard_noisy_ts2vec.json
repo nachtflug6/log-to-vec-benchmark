@@ -1,0 +1,27 @@
+{
+  "mode_separability_index": 4.5622851904912185,
+  "loop_consistency_per_mode": {
+    "0": 111.21982266902924,
+    "1": 127.16982398033142,
+    "2": 84.9964762687683
+  },
+  "loop_consistency_mean": 107.795374306043,
+  "transition_sharpness": 4.0,
+  "pca_loop_compactness_per_mode": {
+    "0": 48.17815783801797,
+    "1": 65.66280788296284,
+    "2": 53.76560859015806
+  },
+  "pca_loop_compactness_mean": 55.86885810371296,
+  "centroid_stability_per_mode": {
+    "0": 0.4413401484489441,
+    "1": 0.536961555480957,
+    "2": 0.6072147488594055
+  },
+  "centroid_stability_mean": 0.5285054842631022,
+  "problem": "p3_hard_noisy",
+  "model": "ts2vec",
+  "num_windows_total": 1380,
+  "num_windows_eval": 207,
+  "embedding_dim": 64
+}
