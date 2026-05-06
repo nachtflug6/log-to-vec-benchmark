@@ -28,19 +28,21 @@ class DatasetPreset:
     raw_columns: tuple[str, ...]
     derived_columns: tuple[str, ...] = ()
     label_csv: Path | None = None
+    binary_label_column: str | None = None
+    binary_label_source_column: str = "Label"
 
 
 PRESETS = {
     "bgl": DatasetPreset(
-        raw_log=Path("experiments/behavior_log/artifacts/datasets/BGL/original/BGL_full.log"),
+        raw_log=Path("experiments/behavior_log/artifacts/datasets/BGL/original/BGL/BGL_full.log"),
         structured_csv=Path(
-            "experiments/behavior_log/artifacts/datasets/BGL/original/BGL_full.log_structured.csv"
+            "experiments/behavior_log/artifacts/datasets/BGL/original/BGL/BGL_full.log_structured.csv"
         ),
         output_csv=Path(
-            "experiments/behavior_log/artifacts/datasets/BGL/raw/BGL_raw.csv"
+            "experiments/behavior_log/artifacts/datasets/BGL/structured/BGL_structured.csv"
         ),
         raw_columns=(
-            "Label",
+            "LabelType",
             "Timestamp",
             "Date",
             "Node",
@@ -51,6 +53,8 @@ PRESETS = {
             "Level",
             "Content",
         ),
+        binary_label_column="Label",
+        binary_label_source_column="LabelType",
     ),
     "hdfs": DatasetPreset(
         raw_log=Path("experiments/behavior_log/artifacts/datasets/HDFS/original/HDFS_full.log"),
@@ -58,7 +62,7 @@ PRESETS = {
             "experiments/behavior_log/artifacts/datasets/HDFS/original/HDFS_full.log_structured.csv"
         ),
         output_csv=Path(
-            "experiments/behavior_log/artifacts/datasets/HDFS/raw/HDFS_raw.csv"
+            "experiments/behavior_log/artifacts/datasets/HDFS/structured/HDFS_structured.csv"
         ),
         raw_columns=("Date", "Time", "Pid", "Level", "Component", "Content"),
         derived_columns=("BlockId",),
@@ -133,6 +137,10 @@ def load_block_labels(label_csv: Path | None) -> dict[str, str]:
     return labels
 
 
+def derive_binary_label(label: str) -> str:
+    return "Normal" if label == "-" else "Anomaly"
+
+
 def merge_logs(
     raw_log: Path,
     structured_csv: Path,
@@ -140,13 +148,33 @@ def merge_logs(
     raw_columns: tuple[str, ...],
     derived_columns: tuple[str, ...] = (),
     block_labels: dict[str, str] | None = None,
+    binary_label_column: str | None = None,
+    binary_label_source_column: str = "Label",
     *,
     max_rows: int | None = None,
     check_content: bool = True,
 ) -> dict[str, int]:
     output_csv.parent.mkdir(parents=True, exist_ok=True)
     label_columns = ("Label",) if block_labels and "Label" not in raw_columns else ()
-    output_columns = ["LineId", *raw_columns, *derived_columns, *label_columns, "EventId", "EventTemplate"]
+    if binary_label_column:
+        output_columns = [
+            "LineId",
+            binary_label_column,
+            *raw_columns,
+            *derived_columns,
+            *label_columns,
+            "EventId",
+            "EventTemplate",
+        ]
+    else:
+        output_columns = [
+            "LineId",
+            *raw_columns,
+            *derived_columns,
+            *label_columns,
+            "EventId",
+            "EventTemplate",
+        ]
 
     rows_written = 0
     content_mismatches = 0
@@ -183,6 +211,15 @@ def merge_logs(
                         label = block_labels.get(derived_row.get("BlockId", ""))
                         missing_labels += int(label is None)
                         label_row["Label"] = label or ""
+                    binary_label_row = {}
+                    if binary_label_column:
+                        if binary_label_source_column not in raw_row:
+                            raise ValueError(
+                                f"Binary label derivation requires a raw {binary_label_source_column} column."
+                            )
+                        binary_label_row[binary_label_column] = derive_binary_label(
+                            raw_row[binary_label_source_column]
+                        )
                     if check_content and raw_row["Content"] != structured_row["Content"]:
                         content_mismatches += 1
 
@@ -190,6 +227,7 @@ def merge_logs(
                         {
                             "LineId": structured_row["LineId"],
                             **raw_row,
+                            **binary_label_row,
                             **derived_row,
                             **label_row,
                             "EventId": structured_row["EventId"],
@@ -281,6 +319,8 @@ def main() -> None:
         raw_columns=raw_columns,
         derived_columns=derived_columns,
         block_labels=block_labels,
+        binary_label_column=preset.binary_label_column if args.raw_columns is None else None,
+        binary_label_source_column=preset.binary_label_source_column,
         max_rows=args.max_rows,
         check_content=not args.skip_content_check,
     )

@@ -1,0 +1,42 @@
+{
+  "input_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/BGL/structured/BGL_structured.csv",
+  "output_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/BGL/node_grouped/BGL_node_grouped.csv",
+  "rows_read": 4631261,
+  "rows_written": 4631261,
+  "nodes_written": 69227,
+  "missing_node_rows_skipped": 0,
+  "timegap": {
+    "column": "TimeGap",
+    "unit": "seconds",
+    "count": 4631261,
+    "zero_count": 69234,
+    "negative_count": 0,
+    "positive_count": 4562027,
+    "nonzero_count": 4562027,
+    "first_rows_per_node": 69227,
+    "mean": 175799.8391910816,
+    "mean_nonzero": 178467.80368724864,
+    "mean_positive": 178467.80368724864,
+    "mean_negative": 0.0,
+    "min": 0.0,
+    "max": 12887292.295457125,
+    "p50": 140.8105058670044,
+    "p90": 180363.90352201462,
+    "p95": 390072.6872680187,
+    "p99": 6717238.7073942665,
+    "bin_counts": {
+      "0s": 69234,
+      ">24h": 715568,
+      "(5,30]min": 543914,
+      "(6,24]h": 297613,
+      "(30,60]min": 266529,
+      "(0,1]s": 1481582,
+      "(1,6]h": 356966,
+      "(1,5]min": 553026,
+      "(10,30]s": 100035,
+      "(1,5]s": 84847,
+      "(30,60]s": 20530,
+      "(5,10]s": 141417
+    }
+  }
+}

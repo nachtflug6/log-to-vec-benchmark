@@ -1,0 +1,16 @@
+{
+  "dataset_name": "HDFS_small",
+  "method": "occurrence_identity",
+  "n_samples": 5000,
+  "embedding_dim": 32,
+  "split_counts": {
+    "test": 750,
+    "train": 3500,
+    "val": 750
+  },
+  "label_counts": {
+    "Anomaly": 1000,
+    "Normal": 4000
+  },
+  "input_dim": 32
+}

@@ -1,0 +1,25 @@
+{
+  "status": "completed",
+  "dataset_name": "HDFS_small",
+  "run_name": "hdfs_small_reconstruction_tcn",
+  "model_type": "reconstruction_sequence_encoder",
+  "objective_type": "reconstruction",
+  "encoder_architecture": "tcn",
+  "checkpoint_path": "/app/experiments/behavior_log/artifacts/runs/HDFS_small/reconstruction_tcn/model.pt",
+  "traces_path": "/app/experiments/behavior_log/artifacts/processed/HDFS_small/traces.csv",
+  "embedding_file": "/app/experiments/behavior_log/artifacts/embeddings/HDFS_small/reconstruction_tcn/embeddings.npz",
+  "device": "cuda",
+  "n_samples": 5000,
+  "embedding_dim": 128,
+  "split_counts": {
+    "test": 750,
+    "train": 3500,
+    "val": 750
+  },
+  "label_counts": {
+    "Anomaly": 1000,
+    "Normal": 4000
+  },
+  "max_len": 50,
+  "l2_normalize": false
+}

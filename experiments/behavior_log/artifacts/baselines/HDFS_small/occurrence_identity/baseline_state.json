@@ -1,0 +1,15 @@
+{
+  "method": "occurrence_identity",
+  "n_components": 32,
+  "whiten": false,
+  "ngram_min": 1,
+  "ngram_max": 3,
+  "scaler_mean": null,
+  "scaler_scale": null,
+  "pca_components": null,
+  "pca_mean": null,
+  "pca_explained_variance_ratio": null,
+  "tfidf_vocab_size": null,
+  "count_vocab_size": null,
+  "svd_explained_variance_ratio": null
+}

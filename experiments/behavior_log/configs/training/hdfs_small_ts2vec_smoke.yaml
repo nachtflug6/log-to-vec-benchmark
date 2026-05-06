@@ -1,0 +1,58 @@
+run_name: "hdfs_small_ts2vec_smoke"
+dataset_type: "hdfs"
+dataset_name: "HDFS_small"
+dataset_dir: "experiments/behavior_log/artifacts/processed/HDFS_small"
+
+model_type: "contrastive_sequence_encoder"
+dry_run_only: false
+sample_mode: "trace"
+input_type: "event_sequence"
+token_column: "sequence"
+max_len: 50
+
+objective:
+  type: "contrastive"
+  contrastive_weight: 1.0
+  reconstruction_weight: 0.0
+
+prefer_split_cache: true
+cache_split: "train"
+
+training_rule:
+  positive_strategy: "same_sample_two_views"
+  negative_strategy: "in_batch_different_sample"
+  use_labels: false
+
+augmentation:
+  token_mask_ratio: 0.15
+  token_dropout_ratio: 0.05
+  crop_ratio: 0.0
+  shuffle: false
+
+encoder:
+  architecture: "tcn"
+  hidden_dim: 32
+  embedding_dim: 32
+  pooling: "mean"
+  depth: 2
+  kernel_size: 3
+  dropout: 0.1
+
+optimization:
+  epochs: 1
+  batch_size: 64
+  lr: 0.001
+  temperature: 0.2
+  weight_decay: 0.0
+  max_grad_norm: 1.0
+
+output_dir: "experiments/behavior_log/artifacts/runs/HDFS_small/ts2vec_style_trace_smoke"
+model_file: "model.pt"
+token_vocab_file: "token_vocab.json"
+token_stats_file: "token_stats.json"
+training_plan_file: "training_plan.json"
+training_summary_file: "training_summary.json"
+
+min_token_count: 1
+seed: 42
+device: "cpu"

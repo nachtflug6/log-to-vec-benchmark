@@ -1,0 +1,32 @@
+{
+  "dataset_name": "HDFS_small",
+  "n_methods": 6,
+  "primary_metric": "linear_probe_test_macro_f1",
+  "best_method": "Occurrence Identity",
+  "best_primary_metric": 0.9767916168506927,
+  "csv_file": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/comparison/HDFS_small/comparison_table.csv",
+  "markdown_file": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/comparison/HDFS_small/comparison_table.md",
+  "methods": [
+    "Occurrence Identity",
+    "TF-IDF SVD",
+    "Hybrid TCN",
+    "Reconstruction TCN",
+    "Reconstruction BiGRU",
+    "Contrastive TCN"
+  ],
+  "metrics": [
+    "linear_probe_test_macro_f1",
+    "linear_probe_test_auroc",
+    "linear_probe_test_auprc",
+    "linear_probe_test_anomaly_recall",
+    "linear_probe_test_anomaly_precision",
+    "retrieval_overall_p_at_5_test",
+    "retrieval_anomaly_p_at_5_test",
+    "retrieval_normal_p_at_5_test",
+    "retrieval_overall_p_at_10_test",
+    "retrieval_anomaly_p_at_10_test",
+    "retrieval_normal_p_at_10_test",
+    "structure_event_count_cosine_at_5_test",
+    "structure_ngram_cosine_at_5_test"
+  ]
+}

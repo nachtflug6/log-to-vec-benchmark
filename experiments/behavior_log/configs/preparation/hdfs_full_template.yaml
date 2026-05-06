@@ -1,0 +1,17 @@
+dataset_kind: "hdfs"
+dataset_name: "HDFS_full"
+input_path: "experiments/behavior_log/artifacts/datasets/HDFS/raw/HDFS_raw.csv"
+output_dir: "experiments/behavior_log/artifacts/processed/HDFS_full"
+output_format: "parquet"
+write_split_cache: true
+group_key: "BlockId"
+token_column: "EventId"
+label_column: "Label"
+sort_columns: ["Date", "Time", "LineId"]
+timestamp_parser: "hdfs_datetime"
+timestamp_columns: ["Date", "Time"]
+metadata_mode_columns: ["Component"]
+train_ratio: 0.7
+val_ratio: 0.15
+test_ratio: 0.15
+seed: 42

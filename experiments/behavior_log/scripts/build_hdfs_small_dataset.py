@@ -13,7 +13,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
-DEFAULT_INPUT = Path("experiments/behavior_log/artifacts/datasets/HDFS/raw/HDFS_raw.csv")
+DEFAULT_INPUT = Path("experiments/behavior_log/artifacts/datasets/HDFS/structured/HDFS_structured.csv")
 DEFAULT_OUTPUT_DIR = Path("experiments/behavior_log/artifacts/datasets/HDFS/small")
 DEFAULT_PREFIX = "HDFS-small"
 

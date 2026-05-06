@@ -1,0 +1,16 @@
+dataset_type: "hdfs"
+dataset_name: "HDFS_small"
+method_name: "hybrid_tcn"
+embedding_file: "experiments/behavior_log/artifacts/embeddings/HDFS_small/hybrid_tcn/embeddings.npz"
+traces_path: "experiments/behavior_log/artifacts/processed/HDFS_small/traces.csv"
+occurrence_matrix_path: "experiments/behavior_log/artifacts/processed/HDFS_small/occurrence_matrix.csv"
+output_dir: "experiments/behavior_log/artifacts/evaluation/HDFS_small/hybrid_tcn"
+metrics_file: "metrics.json"
+artifacts_file: "evaluation_artifacts.npz"
+logistic_max_iter: 2000
+logistic_class_weight: "balanced"
+standardize_probe_features: true
+retrieval_ks: [5, 10]
+structure_k: 5
+ngram_min: 1
+ngram_max: 3

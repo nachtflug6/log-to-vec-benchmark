@@ -1,0 +1,71 @@
+{
+  "method_name": "reconstruction_tcn",
+  "dataset_name": "HDFS_small",
+  "embedding_file": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/embeddings/HDFS_small/reconstruction_tcn/embeddings.npz",
+  "traces_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/processed/HDFS_small/traces.csv",
+  "occurrence_matrix_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/processed/HDFS_small/occurrence_matrix.csv",
+  "n_samples": 5000,
+  "embedding_dim": 128,
+  "split_counts": {
+    "test": 750,
+    "train": 3500,
+    "val": 750
+  },
+  "label_counts": {
+    "Anomaly": 1000,
+    "Normal": 4000
+  },
+  "positive_label": "Anomaly",
+  "linear_probe_val_macro_f1": 0.9706864398262404,
+  "linear_probe_val_auroc": 0.9691944444444445,
+  "linear_probe_val_auprc": 0.9652068130624475,
+  "linear_probe_val_anomaly_recall": 0.9466666666666667,
+  "linear_probe_val_anomaly_precision": 0.9594594594594594,
+  "linear_probe_val_confusion_matrix": [
+    [
+      594,
+      6
+    ],
+    [
+      8,
+      142
+    ]
+  ],
+  "linear_probe_test_macro_f1": 0.9605152688148209,
+  "linear_probe_test_auroc": 0.9847888888888888,
+  "linear_probe_test_auprc": 0.962396020145848,
+  "linear_probe_test_anomaly_recall": 0.94,
+  "linear_probe_test_anomaly_precision": 0.9337748344370861,
+  "linear_probe_test_confusion_matrix": [
+    [
+      590,
+      10
+    ],
+    [
+      9,
+      141
+    ]
+  ],
+  "linear_probe_class_weight": "balanced",
+  "linear_probe_standardized": true,
+  "linear_probe_classes": [
+    "Normal",
+    "Anomaly"
+  ],
+  "test_label_counts": {
+    "Anomaly": 150,
+    "Normal": 600
+  },
+  "retrieval_overall_p_at_5_test": 0.9312,
+  "retrieval_anomaly_p_at_5_test": 0.748,
+  "retrieval_normal_p_at_5_test": 0.977,
+  "retrieval_overall_p_at_10_test": 0.9208,
+  "retrieval_anomaly_p_at_10_test": 0.7326666666666667,
+  "retrieval_normal_p_at_10_test": 0.9678333333333333,
+  "structure_event_count_cosine_at_5_test": 0.9963648319244385,
+  "structure_ngram_cosine_at_5_test": 0.9178913235664368,
+  "structure_ngram_range": [
+    1,
+    3
+  ]
+}

@@ -1,0 +1,704 @@
+{
+  "input_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/BGL/structured/BGL_structured.csv",
+  "total_rows": 4631261,
+  "max_rows": null,
+  "fields": {
+    "Label": {
+      "unique_values": 32,
+      "nonempty_rows": 4631261,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 0.9282653255776343,
+        "top_5": 0.990791492856913,
+        "top_10": 0.9989344154864086,
+        "top_20": 0.9999730095108006,
+        "top_50": 1.0,
+        "top_100": 1.0
+      }
+    },
+    "BinaryLabel": {
+      "unique_values": 2,
+      "nonempty_rows": 4631261,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 0.9282653255776343,
+        "top_5": 1.0,
+        "top_10": 1.0,
+        "top_20": 1.0,
+        "top_50": 1.0,
+        "top_100": 1.0
+      }
+    },
+    "EventId": {
+      "unique_values": 320,
+      "nonempty_rows": 4631261,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 0.3685283554522192,
+        "top_5": 0.6292912448682982,
+        "top_10": 0.761673116673839,
+        "top_20": 0.8566412041990291,
+        "top_50": 0.9447716291524058,
+        "top_100": 0.9918190747617117
+      }
+    },
+    "Node": {
+      "unique_values": 69227,
+      "nonempty_rows": 4631261,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 0.03288953051879391,
+        "top_5": 0.07889643878848547,
+        "top_10": 0.09084005414508058,
+        "top_20": 0.09813310025066607,
+        "top_50": 0.10664222983761874,
+        "top_100": 0.11674790084169301
+      }
+    },
+    "NodeRepeat": {
+      "unique_values": 69233,
+      "nonempty_rows": 4631261,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 0.03288953051879391,
+        "top_5": 0.07889643878848547,
+        "top_10": 0.09084005414508058,
+        "top_20": 0.09813310025066607,
+        "top_50": 0.10664222983761874,
+        "top_100": 0.11674790084169301
+      }
+    },
+    "Type": {
+      "unique_values": 7,
+      "nonempty_rows": 4631261,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 0.9817876815839142,
+        "top_5": 0.9999995681521728,
+        "top_10": 1.0,
+        "top_20": 1.0,
+        "top_50": 1.0,
+        "top_100": 1.0
+      }
+    },
+    "Component": {
+      "unique_values": 14,
+      "nonempty_rows": 4631261,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 0.9169409800052297,
+        "top_5": 0.9992781663568518,
+        "top_10": 0.9999971929891233,
+        "top_20": 1.0,
+        "top_50": 1.0,
+        "top_100": 1.0
+      }
+    },
+    "Level": {
+      "unique_values": 10,
+      "nonempty_rows": 4631261,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 0.7988103024208741,
+        "top_5": 0.9995977337489724,
+        "top_10": 1.0,
+        "top_20": 1.0,
+        "top_50": 1.0,
+        "top_100": 1.0
+      }
+    },
+    "Date": {
+      "unique_values": 215,
+      "nonempty_rows": 4631261,
+      "missing_rows": 0,
+      "coverage_of_rows": 1.0,
+      "top_share_of_nonempty": {
+        "top_1": 0.08239159917784811,
+        "top_5": 0.3025672705554707,
+        "top_10": 0.4633049184660506,
+        "top_20": 0.6437380661552005,
+        "top_50": 0.8494371187458448,
+        "top_100": 0.9374893792425001
+      }
+    }
+  },
+  "top_values": {
+    "Label": [
+      [
+        "-",
+        4299039
+      ],
+      [
+        "KERNDTLB",
+        152734
+      ],
+      [
+        "KERNSTOR",
+        63491
+      ],
+      [
+        "APPSEV",
+        41819
+      ],
+      [
+        "KERNMNTF",
+        31531
+      ],
+      [
+        "KERNTERM",
+        23338
+      ],
+      [
+        "KERNREC",
+        6144
+      ],
+      [
+        "KERNRTSP",
+        3983
+      ],
+      [
+        "APPRES",
+        2256
+      ],
+      [
+        "APPTO",
+        1991
+      ],
+      [
+        "KERNMICRO",
+        1503
+      ],
+      [
+        "APPOUT",
+        816
+      ],
+      [
+        "KERNMNT",
+        720
+      ],
+      [
+        "APPBUSY",
+        512
+      ],
+      [
+        "APPCHILD",
+        320
+      ],
+      [
+        "KERNMC",
+        278
+      ],
+      [
+        "KERNSOCK",
+        209
+      ],
+      [
+        "KERNPOW",
+        192
+      ],
+      [
+        "LINKIAP",
+        166
+      ],
+      [
+        "KERNSERV",
+        94
+      ]
+    ],
+    "BinaryLabel": [
+      [
+        "Normal",
+        4299039
+      ],
+      [
+        "Anomaly",
+        332222
+      ]
+    ],
+    "EventId": [
+      [
+        "E310",
+        1706751
+      ],
+      [
+        "E317",
+        442966
+      ],
+      [
+        "E237",
+        295764
+      ],
+      [
+        "E240",
+        267725
+      ],
+      [
+        "E314",
+        201206
+      ],
+      [
+        "E285",
+        152734
+      ],
+      [
+        "E13",
+        135092
+      ],
+      [
+        "E10",
+        135092
+      ],
+      [
+        "E208",
+        105924
+      ],
+      [
+        "E26",
+        84253
+      ],
+      [
+        "E296",
+        63493
+      ],
+      [
+        "E228",
+        62484
+      ],
+      [
+        "E301",
+        51227
+      ],
+      [
+        "E35",
+        47504
+      ],
+      [
+        "E118",
+        43647
+      ],
+      [
+        "E48",
+        43040
+      ],
+      [
+        "E147",
+        39457
+      ],
+      [
+        "E94",
+        33939
+      ],
+      [
+        "E191",
+        28485
+      ],
+      [
+        "E36",
+        26546
+      ]
+    ],
+    "Node": [
+      [
+        "R30-M0-N9-C:J16-U01",
+        152320
+      ],
+      [
+        "NULL",
+        89208
+      ],
+      [
+        "R02-M1-N0-C:J12-U11",
+        64619
+      ],
+      [
+        "R37-M1-NC-C:J02-U11",
+        35288
+      ],
+      [
+        "UNKNOWN_LOCATION",
+        23955
+      ],
+      [
+        "R16-M1-N2-C:J17-U01",
+        16901
+      ],
+      [
+        "R26-M0-N0-I:J18-U11",
+        14850
+      ],
+      [
+        "R02-M0-N4-C:J04-U11",
+        14049
+      ],
+      [
+        "R06-M1-N6-C:J15-U01",
+        4763
+      ],
+      [
+        "R55-M0-N9-C:J06-U11",
+        4751
+      ],
+      [
+        "R26-M0-NB-C:J07-U01",
+        4708
+      ],
+      [
+        "R30-M0-N7-C:J09-U01",
+        4510
+      ],
+      [
+        "R23-M0-N8-C:J15-U11",
+        4344
+      ],
+      [
+        "R03-M0-NB-C:J10-U11",
+        4044
+      ],
+      [
+        "R63-M0-N3-C:J02-U11",
+        3836
+      ],
+      [
+        "R35-M0-N0-C:J07-U01",
+        3347
+      ],
+      [
+        "R01-M1-ND-C:J15-U11",
+        2711
+      ],
+      [
+        "R10-M0-N7-C:J17-U01",
+        2637
+      ],
+      [
+        "R00-M1-NF-C:J13-U11",
+        1840
+      ],
+      [
+        "R10-M1-N5-C:J04-U11",
+        1799
+      ]
+    ],
+    "NodeRepeat": [
+      [
+        "R30-M0-N9-C:J16-U01",
+        152320
+      ],
+      [
+        "NULL",
+        89208
+      ],
+      [
+        "R02-M1-N0-C:J12-U11",
+        64619
+      ],
+      [
+        "R37-M1-NC-C:J02-U11",
+        35288
+      ],
+      [
+        "UNKNOWN_LOCATION",
+        23955
+      ],
+      [
+        "R16-M1-N2-C:J17-U01",
+        16901
+      ],
+      [
+        "R26-M0-N0-I:J18-U11",
+        14850
+      ],
+      [
+        "R02-M0-N4-C:J04-U11",
+        14049
+      ],
+      [
+        "R06-M1-N6-C:J15-U01",
+        4763
+      ],
+      [
+        "R55-M0-N9-C:J06-U11",
+        4751
+      ],
+      [
+        "R26-M0-NB-C:J07-U01",
+        4708
+      ],
+      [
+        "R30-M0-N7-C:J09-U01",
+        4510
+      ],
+      [
+        "R23-M0-N8-C:J15-U11",
+        4344
+      ],
+      [
+        "R03-M0-NB-C:J10-U11",
+        4044
+      ],
+      [
+        "R63-M0-N3-C:J02-U11",
+        3836
+      ],
+      [
+        "R35-M0-N0-C:J07-U01",
+        3347
+      ],
+      [
+        "R01-M1-ND-C:J15-U11",
+        2711
+      ],
+      [
+        "R10-M0-N7-C:J17-U01",
+        2637
+      ],
+      [
+        "R00-M1-NF-C:J13-U11",
+        1840
+      ],
+      [
+        "R10-M1-N5-C:J04-U11",
+        1799
+      ]
+    ],
+    "Type": [
+      [
+        "RAS",
+        4546915
+      ],
+      [
+        "NULL",
+        84030
+      ],
+      [
+        "KERNEL",
+        306
+      ],
+      [
+        "for",
+        4
+      ],
+      [
+        "interrupts,",
+        4
+      ],
+      [
+        "(5438708)",
+        1
+      ],
+      [
+        "(4211594)",
+        1
+      ]
+    ],
+    "Component": [
+      [
+        "KERNEL",
+        4246593
+      ],
+      [
+        "APP",
+        210165
+      ],
+      [
+        "MMCS",
+        88865
+      ],
+      [
+        "DISCOVERY",
+        79023
+      ],
+      [
+        "HARDWARE",
+        3272
+      ],
+      [
+        "MONITOR",
+        1521
+      ],
+      [
+        "LINKCARD",
+        1170
+      ],
+      [
+        "FATAL",
+        306
+      ],
+      [
+        "CMCS",
+        211
+      ],
+      [
+        "BGLMASTER",
+        122
+      ],
+      [
+        "a",
+        4
+      ],
+      [
+        "0",
+        4
+      ],
+      [
+        "SERV_NET",
+        3
+      ],
+      [
+        "iar",
+        2
+      ]
+    ],
+    "Level": [
+      [
+        "INFO",
+        3699499
+      ],
+      [
+        "FATAL",
+        795015
+      ],
+      [
+        "ERROR",
+        95017
+      ],
+      [
+        "WARNING",
+        21446
+      ],
+      [
+        "SEVERE",
+        18421
+      ],
+      [
+        "FAILURE",
+        1547
+      ],
+      [
+        "Kill",
+        306
+      ],
+      [
+        "single",
+        4
+      ],
+      [
+        "microseconds",
+        4
+      ],
+      [
+        "0x00544eb8,",
+        2
+      ]
+    ],
+    "Date": [
+      [
+        "2005.07.09",
+        381577
+      ],
+      [
+        "2005.06.14",
+        348784
+      ],
+      [
+        "2005.12.01",
+        271309
+      ],
+      [
+        "2005.07.23",
+        200645
+      ],
+      [
+        "2005.07.13",
+        198953
+      ],
+      [
+        "2005.11.03",
+        196182
+      ],
+      [
+        "2005.06.11",
+        152668
+      ],
+      [
+        "2005.07.01",
+        142598
+      ],
+      [
+        "2005.11.04",
+        136027
+      ],
+      [
+        "2005.07.28",
+        116943
+      ],
+      [
+        "2005.06.05",
+        100471
+      ],
+      [
+        "2005.09.20",
+        99469
+      ],
+      [
+        "2005.06.25",
+        95881
+      ],
+      [
+        "2005.08.26",
+        91545
+      ],
+      [
+        "2005.08.28",
+        90540
+      ],
+      [
+        "2005.07.15",
+        81316
+      ],
+      [
+        "2005.06.30",
+        78739
+      ],
+      [
+        "2005.07.20",
+        66482
+      ],
+      [
+        "2005.07.17",
+        65996
+      ],
+      [
+        "2005.06.26",
+        65194
+      ]
+    ]
+  },
+  "node_event_traces": {
+    "path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/BGL/analysis/basic_distributions/Node_event_traces.csv",
+    "node_count": 69227,
+    "label_counts": {
+      "Normal": 37866,
+      "Anomaly": 31361
+    },
+    "average_trace_length": 66.89963453565805,
+    "max_trace_length": 152320,
+    "average_latency": 11760944.993398529,
+    "max_latency": 18541197
+  },
+  "node_occurrence_matrix": {
+    "path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/BGL/analysis/basic_distributions/Node_event_occurrence_matrix.csv",
+    "node_count": 69227,
+    "event_feature_count": 320,
+    "average_nonzero_events_per_node": 10.224204428907797,
+    "max_nonzero_events_per_node": 142
+  }
+}

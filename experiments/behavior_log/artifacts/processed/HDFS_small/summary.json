@@ -1,0 +1,38 @@
+{
+  "dataset_kind": "hdfs",
+  "dataset_name": "HDFS_small",
+  "input_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/HDFS/small/HDFS-small.csv",
+  "output_dir": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/processed/HDFS_small",
+  "output_format": "csv",
+  "write_split_cache": false,
+  "group_key": "BlockId",
+  "token_column": "EventId",
+  "label_column": "Label",
+  "sort_columns": [
+    "Date",
+    "Time",
+    "LineId"
+  ],
+  "total_rows": 94558,
+  "missing_group_key_rows": 0,
+  "missing_token_rows": 0,
+  "n_traces": 5000,
+  "label_counts": {
+    "Anomaly": 1000,
+    "Normal": 4000
+  },
+  "split_counts": {
+    "test": 750,
+    "train": 3500,
+    "val": 750
+  },
+  "token_vocab_size": 32,
+  "trace_length": {
+    "mean": 18.9116,
+    "max": 48
+  },
+  "latency": {
+    "mean": 16272.531,
+    "max": 53876.0
+  }
+}

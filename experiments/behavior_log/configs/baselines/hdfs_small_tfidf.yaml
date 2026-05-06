@@ -1,0 +1,12 @@
+dataset_name: "HDFS_small"
+method: "tfidf_svd"
+traces_path: "experiments/behavior_log/artifacts/processed/HDFS_small/traces.csv"
+occurrence_matrix_path: "experiments/behavior_log/artifacts/processed/HDFS_small/occurrence_matrix.csv"
+splits_path: "experiments/behavior_log/artifacts/processed/HDFS_small/splits.csv"
+output_dir: "experiments/behavior_log/artifacts/baselines/HDFS_small/tfidf_svd"
+embedding_file: "embeddings.npz"
+state_file: "baseline_state.json"
+summary_file: "embedding_summary.json"
+n_components: 32
+ngram_min: 1
+ngram_max: 3

@@ -1,0 +1,38 @@
+{
+  "input_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/BGL/node_grouped/BGL_node_grouped.csv",
+  "output_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/BGL/small_node/BGL-small-node.csv",
+  "selected_nodes_path": "/home/lyra/projects/log-to-vec-benchmark/experiments/behavior_log/artifacts/datasets/BGL/small_node/BGL-small-node_selected_nodes.csv",
+  "seed": 42,
+  "requested_node_counts": {
+    "Normal": 2000,
+    "Anomaly": 500,
+    "Total": 2500
+  },
+  "available_node_counts": {
+    "Normal": 37866,
+    "Anomaly": 31361,
+    "Total": 69227
+  },
+  "selected_node_counts": {
+    "Normal": 2000,
+    "Anomaly": 500,
+    "Total": 2500
+  },
+  "row_counts": {
+    "Normal": 119548,
+    "Anomaly": 2951,
+    "Total": 122499
+  },
+  "post_sampling_window_stats": {
+    "window_size": 50,
+    "stride": 25,
+    "min_window_size": 10,
+    "drop_incomplete": false,
+    "n_windows": 4365,
+    "normal_windows": 3500,
+    "anomaly_windows": 865,
+    "anomaly_window_ratio": 0.1981672394043528,
+    "average_windows_per_node": 1.746,
+    "average_anomaly_ratio_per_anomaly_window": 0.11903321109701952
+  }
+}

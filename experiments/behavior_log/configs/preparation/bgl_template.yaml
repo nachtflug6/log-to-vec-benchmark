@@ -1,0 +1,24 @@
+dataset_kind: "bgl"
+dataset_name: "BGL_small_node_windows"
+input_path: "experiments/behavior_log/artifacts/datasets/BGL/small_node/BGL-small-node.csv"
+output_dir: "experiments/behavior_log/artifacts/processed/BGL_small_node_windows"
+output_format: "csv"
+write_split_cache: false
+group_key: "Node"
+token_column: "EventId"
+label_column: "Label"
+sort_columns: ["Timestamp", "LineId"]
+timestamp_parser: "unix"
+timestamp_columns: ["Timestamp"]
+timestamp_display_columns: ["Time"]
+metadata_mode_columns: ["Component", "Level"]
+window_size: 50
+stride: 25
+min_window_size: 10
+drop_incomplete: false
+normal_label: "Normal"
+anomaly_label: "Anomaly"
+train_ratio: 0.7
+val_ratio: 0.15
+test_ratio: 0.15
+seed: 42
