@@ -3,9 +3,9 @@
 #SBATCH --account=naiss2026-4-91
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=A40:1
-#SBATCH --cpus-per-task=8
-#SBATCH --time=04:00:00
+#SBATCH --gpus-per-node=T4:1
+#SBATCH --cpus-per-task=4
+#SBATCH --time=06:00:00
 #SBATCH --output=logs/rq7/%x_%j.out
 #SBATCH --error=logs/rq7/%x_%j.err
 
