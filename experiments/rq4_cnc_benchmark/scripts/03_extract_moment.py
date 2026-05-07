@@ -32,9 +32,8 @@ def _load_moment(device: str = "cpu"):
     import torch
     from momentfm import MOMENTPipeline
     model = MOMENTPipeline.from_pretrained(
-        "AutonLab/MOMENT-1-large",
-        model_kwargs={"output_attentions": False},
-        task="embedding",
+        "AutonLab/MOMENT-1-base",
+        model_kwargs={"task_name": "embedding"},
     )
     model.init()
     model.to(torch.device(device))

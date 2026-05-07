@@ -31,7 +31,7 @@ import numpy as np
 
 # Re-use _extract_windows from RQ2
 _HERE = Path(__file__).resolve()
-_RQ2_SRC = _HERE.parents[5] / "rq2_trace_comparison" / "src"
+_RQ2_SRC = _HERE.parents[4] / "rq2_trace_comparison" / "src"
 if str(_RQ2_SRC) not in sys.path:
     sys.path.insert(0, str(_RQ2_SRC))
 

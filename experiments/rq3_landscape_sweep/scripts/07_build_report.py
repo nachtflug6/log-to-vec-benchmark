@@ -24,7 +24,7 @@ sys.path.insert(0, str(_RQ3_SRC))
 
 from rq3.config.scenarios import SCENARIOS, SCENARIO_IDS
 
-MODELS = ["fft8", "fft32", "moment", "dcc"]
+MODELS = ["fft8", "fft32", "moment", "dcc", "rocket", "dbf"]
 
 AXIS_ORDER = {
     "signal":  ["baseline", "sig_step", "sig_event", "sig_mixed"],
@@ -97,6 +97,8 @@ def _scalar(v) -> Optional[float]:
 
 
 def _get(row: dict, key: str) -> Optional[float]:
+    if row is None:
+        return None
     return _scalar(row.get(key))
 
 
