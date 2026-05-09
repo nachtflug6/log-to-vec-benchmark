@@ -5,8 +5,8 @@
   "seed": 42,
   "requested_node_counts": {
     "Normal": 2000,
-    "Anomaly": 500,
-    "Total": 2500
+    "Anomaly": 8000,
+    "Total": 10000
   },
   "available_node_counts": {
     "Normal": 37866,
@@ -15,24 +15,27 @@
   },
   "selected_node_counts": {
     "Normal": 2000,
-    "Anomaly": 500,
-    "Total": 2500
+    "Anomaly": 8000,
+    "Total": 10000
   },
   "row_counts": {
-    "Normal": 119548,
-    "Anomaly": 2951,
-    "Total": 122499
+    "Normal": 808244,
+    "Anomaly": 45717,
+    "Total": 853961
   },
   "post_sampling_window_stats": {
     "window_size": 50,
     "stride": 25,
     "min_window_size": 10,
     "drop_incomplete": false,
-    "n_windows": 4365,
-    "normal_windows": 3500,
-    "anomaly_windows": 865,
-    "anomaly_window_ratio": 0.1981672394043528,
-    "average_windows_per_node": 1.746,
-    "average_anomaly_ratio_per_anomaly_window": 0.11903321109701952
+    "session_gap_threshold": 1800.0,
+    "n_sessions": 314506,
+    "n_windows": 12118,
+    "normal_windows": 10240,
+    "anomaly_windows": 1878,
+    "anomaly_window_ratio": 0.1549760686581944,
+    "average_sessions_per_node": 31.4506,
+    "average_windows_per_node": 1.2118,
+    "average_anomaly_ratio_per_anomaly_window": 0.0743589612265408
   }
 }

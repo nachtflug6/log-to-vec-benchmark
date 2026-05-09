@@ -5,5 +5,9 @@ services:
     working_dir: /app
     volumes:
       - .:/app
+      - /mnt/e/log-to-vec-data:/mnt/e/log-to-vec-data
+      - /mnt/e/log-to-vec-data/outputs:/app/outputs
+      - /mnt/e/log-to-vec-data/checkpoints:/app/checkpoints
+      - /mnt/e/log-to-vec-data/experiments_behavior_log/artifacts:/app/experiments/behavior_log/artifacts
     command: bash
     gpus: all

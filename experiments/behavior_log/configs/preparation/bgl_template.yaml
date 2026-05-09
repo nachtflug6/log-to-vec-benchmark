@@ -11,7 +11,9 @@ sort_columns: ["Timestamp", "LineId"]
 timestamp_parser: "unix"
 timestamp_columns: ["Timestamp"]
 timestamp_display_columns: ["Time"]
+time_gap_column: "TimeGap"
 metadata_mode_columns: ["Component", "Level"]
+session_gap_threshold: 1800
 window_size: 50
 stride: 25
 min_window_size: 10

@@ -7,7 +7,7 @@ The input should already be grouped by Node. Sampling is node-level:
 - normal-only nodes: nodes with only Label == Normal
 
 By default, this builds a 2500-node small dataset with a 4:1
-normal:anomaly node ratio: 2000 normal-only nodes + 500 anomaly-containing
+anomaly:normal node ratio: 2000 anomaly-containing nodes + 500 normal-only
 nodes. All rows from selected nodes are retained.
 """
 
@@ -165,6 +165,27 @@ def iter_window_labels(
     return windows
 
 
+def split_labels_by_session(
+    rows: list[tuple[str, float]],
+    *,
+    session_gap_threshold: float | None,
+) -> list[list[str]]:
+    if session_gap_threshold is None:
+        return [[label for label, _ in rows]] if rows else []
+
+    sessions: list[list[str]] = []
+    current: list[str] = []
+    for label, time_gap in rows:
+        should_start_new = bool(current) and time_gap > session_gap_threshold
+        if should_start_new:
+            sessions.append(current)
+            current = []
+        current.append(label)
+    if current:
+        sessions.append(current)
+    return sessions
+
+
 def compute_window_sampling_stats(
     *,
     input_path: Path,
@@ -173,14 +194,17 @@ def compute_window_sampling_stats(
     stride: int,
     min_window_size: int,
     drop_incomplete: bool,
+    session_gap_threshold: float | None,
 ) -> dict[str, float | int]:
-    labels_by_node: dict[str, list[str]] = {}
+    rows_by_node: dict[str, list[tuple[str, float]]] = {}
 
     with input_path.open("r", newline="", encoding="utf-8", errors="replace") as input_handle:
         reader = csv.DictReader(input_handle)
         if reader.fieldnames is None:
             raise ValueError("Input CSV is empty.")
         required = {"Node", "Label"}
+        if session_gap_threshold is not None:
+            required.add("TimeGap")
         missing = required.difference(reader.fieldnames)
         if missing:
             raise ValueError(f"Input CSV is missing required columns: {', '.join(sorted(missing))}")
@@ -189,21 +213,39 @@ def compute_window_sampling_stats(
             node = row["Node"].strip()
             if node not in selected_nodes:
                 continue
-            labels_by_node.setdefault(node, []).append(row["Label"].strip())
+            time_gap = 0.0
+            if session_gap_threshold is not None:
+                try:
+                    time_gap = float(row["TimeGap"].strip())
+                except ValueError:
+                    time_gap = 0.0
+            rows_by_node.setdefault(node, []).append((row["Label"].strip(), time_gap))
 
     normal_windows = 0
     anomaly_windows = 0
     anomaly_ratios: list[float] = []
     windows_per_node: list[int] = []
+    sessions_per_node: list[int] = []
+    n_sessions = 0
 
     for node in sorted(selected_nodes):
-        node_windows = iter_window_labels(
-            labels_by_node.get(node, []),
-            window_size=window_size,
-            stride=stride,
-            min_window_size=min_window_size,
-            drop_incomplete=drop_incomplete,
+        sessions = split_labels_by_session(
+            rows_by_node.get(node, []),
+            session_gap_threshold=session_gap_threshold,
         )
+        sessions_per_node.append(len(sessions))
+        n_sessions += len(sessions)
+        node_windows: list[list[str]] = []
+        for session_labels in sessions:
+            node_windows.extend(
+                iter_window_labels(
+                    session_labels,
+                    window_size=window_size,
+                    stride=stride,
+                    min_window_size=min_window_size,
+                    drop_incomplete=drop_incomplete,
+                )
+            )
         windows_per_node.append(len(node_windows))
         for labels in node_windows:
             anomaly_count = sum(1 for label in labels if label == "Anomaly")
@@ -219,10 +261,13 @@ def compute_window_sampling_stats(
         "stride": stride,
         "min_window_size": min_window_size,
         "drop_incomplete": bool(drop_incomplete),
+        "session_gap_threshold": session_gap_threshold,
+        "n_sessions": n_sessions,
         "n_windows": n_windows,
         "normal_windows": normal_windows,
         "anomaly_windows": anomaly_windows,
         "anomaly_window_ratio": anomaly_windows / n_windows if n_windows else 0.0,
+        "average_sessions_per_node": sum(sessions_per_node) / len(sessions_per_node) if sessions_per_node else 0.0,
         "average_windows_per_node": sum(windows_per_node) / len(windows_per_node) if windows_per_node else 0.0,
         "average_anomaly_ratio_per_anomaly_window": (
             sum(anomaly_ratios) / len(anomaly_ratios) if anomaly_ratios else 0.0
@@ -236,8 +281,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR, help="Output directory.")
     parser.add_argument("--prefix", default=DEFAULT_PREFIX, help="Filename prefix.")
     parser.add_argument("--total-nodes", type=int, default=2500, help="Total nodes to sample.")
-    parser.add_argument("--normal-ratio", type=int, default=4, help="Normal side of normal:anomaly node ratio.")
-    parser.add_argument("--anomaly-ratio", type=int, default=1, help="Anomaly side of normal:anomaly node ratio.")
+    parser.add_argument("--normal-ratio", type=int, default=1, help="Normal side of anomaly:normal node ratio.")
+    parser.add_argument("--anomaly-ratio", type=int, default=4, help="Anomaly side of anomaly:normal node ratio.")
+    parser.add_argument(
+        "--session-gap-threshold",
+        type=float,
+        default=1800.0,
+        help="TimeGap threshold in seconds used for sessionized post-sampling statistics.",
+    )
     parser.add_argument("--window-size", type=int, default=50, help="Window size used for post-sampling statistics.")
     parser.add_argument("--stride", type=int, default=25, help="Window stride used for post-sampling statistics.")
     parser.add_argument("--min-window-size", type=int, default=10, help="Minimum window size used for statistics.")
@@ -263,6 +314,8 @@ def main() -> None:
         raise ValueError("--window-size, --stride, and --min-window-size must be positive.")
     if args.min_window_size > args.window_size:
         raise ValueError("--min-window-size cannot exceed --window-size.")
+    if args.session_gap_threshold is not None and args.session_gap_threshold < 0:
+        raise ValueError("--session-gap-threshold must be non-negative.")
 
     total_ratio = args.normal_ratio + args.anomaly_ratio
     anomaly_nodes = int(args.total_nodes * args.anomaly_ratio / total_ratio)
@@ -295,6 +348,7 @@ def main() -> None:
         stride=args.stride,
         min_window_size=args.min_window_size,
         drop_incomplete=bool(args.drop_incomplete),
+        session_gap_threshold=args.session_gap_threshold,
     )
 
     selected_node_row_counts = Counter(node_stats[node].binary_label for node in selected_nodes)
@@ -344,11 +398,13 @@ def main() -> None:
     print("Post-sampling window stats:")
     print(f"  n_nodes: {len(selected_nodes):,}")
     print(f"  n_rows: {rows_written:,}")
+    print(f"  n_sessions: {window_stats['n_sessions']:,}")
     print(f"  n_windows: {window_stats['n_windows']:,}")
     print(f"  normal_windows: {window_stats['normal_windows']:,}")
     print(f"  anomaly_windows: {window_stats['anomaly_windows']:,}")
     print(f"  anomaly_window_ratio: {window_stats['anomaly_window_ratio']:.6f}")
     print(f"  average_windows_per_node: {window_stats['average_windows_per_node']:.2f}")
+    print(f"  average_sessions_per_node: {window_stats['average_sessions_per_node']:.2f}")
     print(
         "  average_anomaly_ratio_per_anomaly_window: "
         f"{window_stats['average_anomaly_ratio_per_anomaly_window']:.6f}"

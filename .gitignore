@@ -61,12 +61,14 @@ logs/
 # Experiment outputs
 outputs/
 checkpoints/
+checkpoints
 results/
 reports/
 visualizations/
 
 # Deferred branch artifacts (kept out of unified code branch)
 experiments/rq1_recoverability/artifacts/
+experiments/behavior_log_c_drive_leftovers/
 
 # Scratch files from feature branches
 scr.txt

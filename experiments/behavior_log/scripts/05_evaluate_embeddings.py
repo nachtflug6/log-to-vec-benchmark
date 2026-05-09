@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stage 05: evaluate frozen HDFS block-level embeddings."""
+"""Stage 05: evaluate frozen trace-level embeddings."""
 
 from __future__ import annotations
 
@@ -65,8 +65,9 @@ def _align_prepared_tables(
 def main() -> None:
     config_name = sys.argv[1] if len(sys.argv) > 1 else "hdfs_small_ts2vec"
     cfg = load_yaml(_resolve_config(config_name))
-    if str(cfg.get("dataset_type", "hdfs")).lower() != "hdfs":
-        raise NotImplementedError("Stage 05 currently implements HDFS trace-level evaluation.")
+    dataset_type = str(cfg.get("dataset_type", "hdfs")).lower()
+    if dataset_type not in {"hdfs", "bgl"}:
+        raise NotImplementedError("Stage 05 currently implements HDFS/BGL trace-level evaluation.")
 
     embeddings_path = _resolve_path(cfg["embedding_file"])
     traces_path = _resolve_path(cfg["traces_path"])
@@ -112,7 +113,7 @@ def main() -> None:
     save_json(metrics, metrics_path)
     np.savez_compressed(artifacts_path, **result.artifacts)
 
-    print("HDFS embedding evaluation:")
+    print(f"{dataset_type.upper()} embedding evaluation:")
     print(f"  method: {metrics['method_name']}")
     print(f"  samples: {metrics['n_samples']}")
     print(f"  embedding_dim: {metrics['embedding_dim']}")

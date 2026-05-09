@@ -32,6 +32,7 @@ class EventRecord:
     timestamp: float | None
     timestamp_display: str
     label: str
+    time_gap: float | None
     metadata_values: dict[str, str]
 
 
@@ -49,6 +50,7 @@ class TraceAccumulator:
         timestamp: float | None,
         timestamp_display: str,
         label: str,
+        time_gap: float | None,
         count_label_vote: bool,
         metadata_values: dict[str, str],
     ) -> None:
@@ -63,6 +65,7 @@ class TraceAccumulator:
                 timestamp=timestamp,
                 timestamp_display=timestamp_display,
                 label=label,
+                time_gap=time_gap,
                 metadata_values=metadata_values,
             )
         )
@@ -262,6 +265,56 @@ def finalize_window_trace(
     )
 
 
+def split_events_by_time_gap(
+    events: list[EventRecord],
+    *,
+    session_gap_threshold: float | None,
+) -> list[list[EventRecord]]:
+    if session_gap_threshold is None:
+        return [events] if events else []
+
+    sessions: list[list[EventRecord]] = []
+    current: list[EventRecord] = []
+    for event in events:
+        should_start_new = (
+            bool(current)
+            and event.time_gap is not None
+            and event.time_gap > session_gap_threshold
+        )
+        if should_start_new:
+            sessions.append(current)
+            current = []
+        current.append(event)
+    if current:
+        sessions.append(current)
+    return sessions
+
+
+def iter_sliding_windows(
+    events: list[EventRecord],
+    *,
+    window_size: int,
+    stride: int,
+    min_window_size: int,
+    drop_incomplete: bool,
+) -> list[list[EventRecord]]:
+    windows: list[list[EventRecord]] = []
+    if len(events) < min_window_size:
+        return windows
+
+    for start in range(0, len(events), stride):
+        end = start + window_size
+        if end > len(events) and drop_incomplete:
+            break
+        window_events = events[start:min(end, len(events))]
+        if len(window_events) < min_window_size:
+            break
+        windows.append(window_events)
+        if end >= len(events):
+            break
+    return windows
+
+
 def load_traces(
     cfg: dict[str, Any],
     *,
@@ -273,6 +326,7 @@ def load_traces(
     label_column = str(cfg["label_column"])
     sort_columns = list(cfg["sort_columns"])
     metadata_columns = list(cfg.get("metadata_mode_columns", []))
+    time_gap_column = cfg.get("time_gap_column")
 
     traces: dict[str, TraceAccumulator] = defaultdict(TraceAccumulator)
     total_rows = 0
@@ -290,6 +344,12 @@ def load_traces(
         if not token:
             missing_token_rows += 1
             return
+        time_gap = None
+        if time_gap_column:
+            try:
+                time_gap = float(row[str(time_gap_column)].strip())
+            except ValueError:
+                time_gap = None
 
         traces[sample_id].add_event(
             sort_key=build_sort_key(row, sort_columns),
@@ -297,6 +357,7 @@ def load_traces(
             timestamp=parse_timestamp(row, cfg),
             timestamp_display=build_timestamp_display(row, cfg),
             label=row[label_column].strip(),
+            time_gap=time_gap,
             count_label_vote=should_count_label_vote(row, cfg),
             metadata_values={column: row[column].strip() for column in metadata_columns},
         )
@@ -309,6 +370,8 @@ def load_traces(
         df = pd.read_parquet(input_path)
         required_columns = {group_key, token_column, label_column, *sort_columns, *metadata_columns}
         required_columns.update(cfg.get("timestamp_columns", []))
+        if time_gap_column:
+            required_columns.add(str(time_gap_column))
         exclude_column = cfg.get("label_vote_exclude_column")
         if exclude_column:
             required_columns.add(str(exclude_column))
@@ -326,6 +389,8 @@ def load_traces(
             required_columns = {group_key, token_column, label_column, *sort_columns, *metadata_columns}
             timestamp_columns = cfg.get("timestamp_columns", [])
             required_columns.update(timestamp_columns)
+            if time_gap_column:
+                required_columns.add(str(time_gap_column))
             exclude_column = cfg.get("label_vote_exclude_column")
             if exclude_column:
                 required_columns.add(str(exclude_column))
@@ -643,6 +708,8 @@ def prepare_bgl(cfg: dict[str, Any]) -> None:
     stride = int(cfg["stride"])
     min_window_size = int(cfg.get("min_window_size", window_size))
     drop_incomplete = bool(cfg.get("drop_incomplete", False))
+    session_gap_threshold = cfg.get("session_gap_threshold")
+    session_gap_threshold = None if session_gap_threshold is None else float(session_gap_threshold)
     anomaly_label = str(cfg.get("anomaly_label", "Anomaly"))
     normal_label = str(cfg.get("normal_label", "Normal"))
     if window_size <= 0 or stride <= 0 or min_window_size <= 0:
@@ -652,6 +719,8 @@ def prepare_bgl(cfg: dict[str, Any]) -> None:
 
     traces: dict[str, PreparedTrace] = {}
     skipped_short_nodes = 0
+    n_sessions = 0
+    skipped_short_sessions = 0
     for node in sorted(node_traces):
         ordered_events = sorted(node_traces[node].events, key=lambda event: event.sort_key)
         if len(ordered_events) < min_window_size:
@@ -659,28 +728,37 @@ def prepare_bgl(cfg: dict[str, Any]) -> None:
             continue
 
         local_window_index = 0
-        for start in range(0, len(ordered_events), stride):
-            end = start + window_size
-            if end > len(ordered_events) and drop_incomplete:
-                break
-            window_events = ordered_events[start:min(end, len(ordered_events))]
-            if len(window_events) < min_window_size:
-                break
-
-            sample_id = f"{sanitize_sample_id_part(node)}__w{local_window_index:06d}"
-            traces[sample_id] = finalize_window_trace(
-                sample_id=sample_id,
-                events=window_events,
-                anomaly_label=anomaly_label,
-                normal_label=normal_label,
-                extra_metadata={
-                    "node": node,
-                    "window_index": str(local_window_index),
-                },
+        sessions = split_events_by_time_gap(
+            ordered_events,
+            session_gap_threshold=session_gap_threshold,
+        )
+        n_sessions += len(sessions)
+        for session_index, session_events in enumerate(sessions):
+            session_windows = iter_sliding_windows(
+                session_events,
+                window_size=window_size,
+                stride=stride,
+                min_window_size=min_window_size,
+                drop_incomplete=drop_incomplete,
             )
-            local_window_index += 1
-            if end >= len(ordered_events):
-                break
+            if not session_windows:
+                skipped_short_sessions += 1
+                continue
+            for session_window_index, window_events in enumerate(session_windows):
+                sample_id = f"{sanitize_sample_id_part(node)}__s{session_index:05d}__w{session_window_index:05d}"
+                traces[sample_id] = finalize_window_trace(
+                    sample_id=sample_id,
+                    events=window_events,
+                    anomaly_label=anomaly_label,
+                    normal_label=normal_label,
+                    extra_metadata={
+                        "node": node,
+                        "session_index": str(session_index),
+                        "session_window_index": str(session_window_index),
+                        "window_index": str(local_window_index),
+                    },
+                )
+                local_window_index += 1
 
     split_map = assign_splits(
         traces,
@@ -724,8 +802,11 @@ def prepare_bgl(cfg: dict[str, Any]) -> None:
             "stride": stride,
             "min_window_size": min_window_size,
             "drop_incomplete": drop_incomplete,
+            "session_gap_threshold": session_gap_threshold,
             "source_nodes": len(node_traces),
+            "n_sessions": n_sessions,
             "skipped_short_nodes": skipped_short_nodes,
+            "skipped_short_sessions": skipped_short_sessions,
         }
     )
     save_json(summary, output_dir / "summary.json")
@@ -734,6 +815,7 @@ def prepare_bgl(cfg: dict[str, Any]) -> None:
     print(f"Windows: {summary['n_traces']}")
     print(f"Rows consumed: {summary['total_rows']}")
     print(f"Source nodes: {summary['source_nodes']}")
+    print(f"Sessions: {summary['n_sessions']}")
     print(f"Output: {output_dir}")
 
 
