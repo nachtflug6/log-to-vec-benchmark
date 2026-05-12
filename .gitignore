@@ -84,6 +84,7 @@ experiments/registry/runs/*.json
 Thumbs.db
 
 # Testing
+tests/
 .pytest_cache/
 .coverage
 htmlcov/

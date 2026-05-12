@@ -1,0 +1,65 @@
+run_name: "behavior_subprocess_l5_similarity_contrastive"
+dataset_type: "behavior_subprocess"
+dataset_name: "behavior_subprocess"
+dataset_dir: "../dataset/processed/model_ready/subprocess"
+
+model_type: "similarity_aware_contrastive_sequence_encoder"
+dry_run_only: false
+sample_mode: "trace"
+input_type: "event_sequence"
+token_column: "sequence"
+max_len: 16
+
+objective:
+  type: "contrastive"
+  contrastive_weight: 1.0
+  reconstruction_weight: 0.0
+  positive_target: "sequence_similarity"
+  similarity_ngram_min: 1
+  similarity_ngram_max: 3
+  target_temperature: 0.1
+  target_top_k: 8
+
+prefer_split_cache: false
+
+training_rule:
+  positive_strategy: "similar_sequence"
+  negative_strategy: "distant_sequence"
+  use_labels: false
+
+augmentation:
+  token_mask_ratio: 0.0
+  token_dropout_ratio: 0.0
+  view1_token_mask_ratio: 0.0
+  view1_token_dropout_ratio: 0.10
+  view2_token_mask_ratio: 0.15
+  view2_token_dropout_ratio: 0.0
+  reconstruction_mask_ratio: 0.15
+  crop_ratio: 0.0
+  shuffle: false
+
+encoder:
+  architecture: "bigru"
+  hidden_dim: 128
+  embedding_dim: 128
+  pooling: "mean"
+  depth: 1
+  dropout: 0.1
+
+optimization:
+  epochs: 60
+  batch_size: 128
+  lr: 0.001
+  temperature: 0.2
+  weight_decay: 0.0
+
+output_dir: "../dataset/processed/model_ready/subprocess/runs/l5_similarity_contrastive"
+model_file: "model.pt"
+token_vocab_file: "token_vocab.json"
+token_stats_file: "token_stats.json"
+training_plan_file: "training_plan.json"
+training_summary_file: "training_summary.json"
+
+min_token_count: 1
+seed: 42
+device: "auto"

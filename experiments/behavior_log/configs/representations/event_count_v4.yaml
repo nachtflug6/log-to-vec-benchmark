@@ -1,6 +1,0 @@
-run_name: event_count_v4
-window_file: experiments/behavior_log/artifacts/datasets/latent_behavior_sequence_v4/windows/windows.npz
-output_dir: experiments/behavior_log/artifacts/runs/event_count_v4
-method: event_count
-state_file: representation_state.json
-summary_file: representation_summary.json

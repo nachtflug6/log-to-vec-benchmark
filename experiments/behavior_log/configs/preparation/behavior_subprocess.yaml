@@ -1,0 +1,16 @@
+dataset_kind: "behavior_jsonl"
+dataset_name: "behavior_subprocess"
+dataset_level: "subprocess"
+input_path: "../dataset/processed/subprocess_sequences.jsonl"
+output_dir: "../dataset/processed/model_ready/subprocess"
+output_format: "csv"
+write_split_cache: false
+sample_id_field: "subprocess_id"
+token_field: "sub_activities"
+label_field: "has_failure"
+label_mode: "failure_success"
+metadata_fields: ["case_id", "process_model_id", "parent_op_index", "main_activity", "has_failure", "resource", "sub_event_count", "duration_seconds", "start_time", "end_time"]
+train_ratio: 0.7
+val_ratio: 0.15
+test_ratio: 0.15
+seed: 42

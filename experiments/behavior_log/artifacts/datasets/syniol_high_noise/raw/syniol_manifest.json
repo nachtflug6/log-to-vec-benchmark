@@ -1,0 +1,404 @@
+{
+  "seed": 42,
+  "requested_num_trajectories": 120,
+  "events_per_trajectory": 640,
+  "generated_num_events": 76800,
+  "generated_num_trajectories": 120,
+  "selected_behavior_ids": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "selected_behavior_probs": [
+    0.18,
+    0.18,
+    0.18,
+    0.16,
+    0.3
+  ],
+  "transition_event_count": 9157,
+  "behavior_trajectory_counts": [
+    {
+      "behavior_id": 0,
+      "trajectory_count": 105,
+      "behavior_name": "Fast Stable Recovery"
+    },
+    {
+      "behavior_id": 1,
+      "trajectory_count": 105,
+      "behavior_name": "Delayed Recovery"
+    },
+    {
+      "behavior_id": 2,
+      "trajectory_count": 97,
+      "behavior_name": "Oscillating Instability"
+    },
+    {
+      "behavior_id": 3,
+      "trajectory_count": 97,
+      "behavior_name": "Cascading Failure"
+    },
+    {
+      "behavior_id": 4,
+      "trajectory_count": 117,
+      "behavior_name": "Normal Stable Operation"
+    }
+  ],
+  "behavior_segment_counts": [
+    {
+      "behavior_id": 0,
+      "segment_count": 176
+    },
+    {
+      "behavior_id": 1,
+      "segment_count": 192
+    },
+    {
+      "behavior_id": 2,
+      "segment_count": 172
+    },
+    {
+      "behavior_id": 3,
+      "segment_count": 149
+    },
+    {
+      "behavior_id": 4,
+      "segment_count": 265
+    }
+  ],
+  "observable_columns": [
+    "trajectory_id",
+    "event_index",
+    "timestamp",
+    "event_type",
+    "component",
+    "severity",
+    "state",
+    "message",
+    "sensor_value",
+    "control_value"
+  ],
+  "hidden_label_columns": [
+    "trajectory_id",
+    "event_index",
+    "segment_id",
+    "behavior_id",
+    "behavior_name",
+    "variant_id",
+    "variant_name",
+    "is_transition",
+    "source_behavior_id",
+    "target_behavior_id",
+    "transition_progress",
+    "risk_level",
+    "load_level",
+    "recovery_progress",
+    "component_health_sensor",
+    "component_health_control",
+    "component_health_network",
+    "component_health_processing",
+    "primary_component"
+  ],
+  "event_vocabulary": [
+    "STATUS_CHECK",
+    "VALUE_READ",
+    "SETPOINT_UPDATE",
+    "CONTROL_COMMAND",
+    "ACTUATOR_RESPONSE",
+    "WARNING_RAISED",
+    "ERROR_DETECTED",
+    "COMM_DELAY",
+    "NETWORK_TIMEOUT",
+    "DIAGNOSIS_START",
+    "RECOVERY_ACTION",
+    "RETRY_OPERATION",
+    "MAINTENANCE_CHECK",
+    "HEALTH_OK"
+  ],
+  "event_component_weights": {
+    "STATUS_CHECK": {
+      "SensorUnit": 1.0,
+      "ControlUnit": 1.0,
+      "NetworkUnit": 1.0,
+      "ProcessingUnit": 1.0
+    },
+    "VALUE_READ": {
+      "SensorUnit": 1.0,
+      "ProcessingUnit": 0.8,
+      "ControlUnit": 0.3,
+      "NetworkUnit": 0.2
+    },
+    "SETPOINT_UPDATE": {
+      "ControlUnit": 1.0,
+      "ProcessingUnit": 0.8,
+      "SensorUnit": 0.2,
+      "NetworkUnit": 0.2
+    },
+    "CONTROL_COMMAND": {
+      "ControlUnit": 1.0,
+      "ProcessingUnit": 0.7,
+      "NetworkUnit": 0.4,
+      "SensorUnit": 0.2
+    },
+    "ACTUATOR_RESPONSE": {
+      "ControlUnit": 0.9,
+      "ProcessingUnit": 0.6,
+      "SensorUnit": 0.3,
+      "NetworkUnit": 0.2
+    },
+    "WARNING_RAISED": {
+      "SensorUnit": 0.8,
+      "ControlUnit": 0.8,
+      "NetworkUnit": 0.8,
+      "ProcessingUnit": 0.8
+    },
+    "ERROR_DETECTED": {
+      "SensorUnit": 0.8,
+      "ControlUnit": 0.8,
+      "NetworkUnit": 0.8,
+      "ProcessingUnit": 0.8
+    },
+    "COMM_DELAY": {
+      "NetworkUnit": 1.0,
+      "ProcessingUnit": 0.6,
+      "ControlUnit": 0.4,
+      "SensorUnit": 0.2
+    },
+    "NETWORK_TIMEOUT": {
+      "NetworkUnit": 1.0,
+      "ProcessingUnit": 0.7,
+      "ControlUnit": 0.5,
+      "SensorUnit": 0.1
+    },
+    "DIAGNOSIS_START": {
+      "ProcessingUnit": 1.0,
+      "ControlUnit": 0.8,
+      "NetworkUnit": 0.5,
+      "SensorUnit": 0.4
+    },
+    "RECOVERY_ACTION": {
+      "ControlUnit": 1.0,
+      "ProcessingUnit": 0.8,
+      "NetworkUnit": 0.6,
+      "SensorUnit": 0.3
+    },
+    "RETRY_OPERATION": {
+      "ControlUnit": 0.8,
+      "NetworkUnit": 0.8,
+      "ProcessingUnit": 0.7,
+      "SensorUnit": 0.3
+    },
+    "MAINTENANCE_CHECK": {
+      "SensorUnit": 0.7,
+      "ControlUnit": 0.7,
+      "NetworkUnit": 0.7,
+      "ProcessingUnit": 0.7
+    },
+    "HEALTH_OK": {
+      "SensorUnit": 1.0,
+      "ControlUnit": 1.0,
+      "NetworkUnit": 1.0,
+      "ProcessingUnit": 1.0
+    }
+  },
+  "output_files": {
+    "syniol_observable.csv": "Observable fields only; use this file as model input.",
+    "syniol_labels.csv": "Hidden latent/evaluation fields; do not use this file as model input.",
+    "syniol_full.csv": "Convenience file containing both observable fields and hidden labels.",
+    "syniol_manifest.json": "Machine-readable generation metadata.",
+    "syniol_description.md": "Human-readable dataset description."
+  },
+  "model_visibility_note": "Use syniol_observable.csv as model input. syniol_labels.csv contains latent/evaluation fields and must not be used as model input.",
+  "catalog": [
+    {
+      "behavior_id": 0,
+      "behavior_name": "Fast Stable Recovery",
+      "variants": [
+        {
+          "variant_id": 0,
+          "variant_name": "fast_recovery_a",
+          "params": {
+            "shock": 0.3,
+            "recovery_rate": 0.16,
+            "health_recovery": 0.13
+          }
+        },
+        {
+          "variant_id": 1,
+          "variant_name": "fast_recovery_b",
+          "params": {
+            "shock": 0.36,
+            "recovery_rate": 0.18,
+            "health_recovery": 0.14
+          }
+        },
+        {
+          "variant_id": 2,
+          "variant_name": "fast_recovery_c",
+          "params": {
+            "shock": 0.28,
+            "recovery_rate": 0.15,
+            "health_recovery": 0.12
+          }
+        }
+      ]
+    },
+    {
+      "behavior_id": 1,
+      "behavior_name": "Delayed Recovery",
+      "variants": [
+        {
+          "variant_id": 0,
+          "variant_name": "delayed_recovery_a",
+          "params": {
+            "shock": 0.32,
+            "recovery_rate": 0.07,
+            "pause_prob": 0.18,
+            "health_recovery": 0.06
+          }
+        },
+        {
+          "variant_id": 1,
+          "variant_name": "delayed_recovery_b",
+          "params": {
+            "shock": 0.36,
+            "recovery_rate": 0.08,
+            "pause_prob": 0.25,
+            "health_recovery": 0.07
+          }
+        },
+        {
+          "variant_id": 2,
+          "variant_name": "delayed_recovery_c",
+          "params": {
+            "shock": 0.3,
+            "recovery_rate": 0.06,
+            "pause_prob": 0.3,
+            "health_recovery": 0.05
+          }
+        }
+      ]
+    },
+    {
+      "behavior_id": 2,
+      "behavior_name": "Oscillating Instability",
+      "variants": [
+        {
+          "variant_id": 0,
+          "variant_name": "oscillating_instability_a",
+          "params": {
+            "shock": 0.3,
+            "oscillation_amplitude": 0.11,
+            "oscillation_period": 3,
+            "recovery_rate": 0.08
+          }
+        },
+        {
+          "variant_id": 1,
+          "variant_name": "oscillating_instability_b",
+          "params": {
+            "shock": 0.34,
+            "oscillation_amplitude": 0.14,
+            "oscillation_period": 4,
+            "recovery_rate": 0.07
+          }
+        },
+        {
+          "variant_id": 2,
+          "variant_name": "oscillating_instability_c",
+          "params": {
+            "shock": 0.28,
+            "oscillation_amplitude": 0.1,
+            "oscillation_period": 5,
+            "recovery_rate": 0.09
+          }
+        }
+      ]
+    },
+    {
+      "behavior_id": 3,
+      "behavior_name": "Cascading Failure",
+      "variants": [
+        {
+          "variant_id": 0,
+          "variant_name": "cascading_failure_a",
+          "params": {
+            "shock": 0.34,
+            "spread_speed": 3,
+            "damage_rate": 0.1,
+            "spread_path": [
+              "SensorUnit",
+              "ProcessingUnit",
+              "ControlUnit",
+              "NetworkUnit"
+            ]
+          }
+        },
+        {
+          "variant_id": 1,
+          "variant_name": "cascading_failure_b",
+          "params": {
+            "shock": 0.36,
+            "spread_speed": 4,
+            "damage_rate": 0.09,
+            "spread_path": [
+              "NetworkUnit",
+              "ProcessingUnit",
+              "ControlUnit"
+            ]
+          }
+        },
+        {
+          "variant_id": 2,
+          "variant_name": "cascading_failure_c",
+          "params": {
+            "shock": 0.32,
+            "spread_speed": 2,
+            "damage_rate": 0.11,
+            "spread_path": [
+              "ControlUnit",
+              "ProcessingUnit",
+              "NetworkUnit",
+              "SensorUnit"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "behavior_id": 4,
+      "behavior_name": "Normal Stable Operation",
+      "variants": [
+        {
+          "variant_id": 0,
+          "variant_name": "normal_stable_a",
+          "params": {
+            "risk_drift": -0.02,
+            "health_recovery": 0.02,
+            "load_smoothing": 0.1
+          }
+        },
+        {
+          "variant_id": 1,
+          "variant_name": "normal_stable_b",
+          "params": {
+            "risk_drift": -0.015,
+            "health_recovery": 0.015,
+            "load_smoothing": 0.12
+          }
+        },
+        {
+          "variant_id": 2,
+          "variant_name": "normal_stable_c",
+          "params": {
+            "risk_drift": -0.01,
+            "health_recovery": 0.018,
+            "load_smoothing": 0.08
+          }
+        }
+      ]
+    }
+  ]
+}

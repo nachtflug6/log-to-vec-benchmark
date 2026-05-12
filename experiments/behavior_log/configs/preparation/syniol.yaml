@@ -1,0 +1,19 @@
+dataset_kind: "synthetic"
+dataset_name: "syniol_moderate_noise"
+input_path: "experiments/behavior_log/artifacts/datasets/syniol_moderate_noise/raw/syniol_full.csv"
+output_dir: "experiments/behavior_log/artifacts/processed/syniol_moderate_noise"
+output_format: "csv"
+write_split_cache: false
+group_key: "trajectory_id"
+token_column: "event_type"
+label_column: "behavior_id"
+sort_columns: ["timestamp", "event_index"]
+timestamp_parser: "iso8601"
+timestamp_columns: ["timestamp"]
+metadata_mode_columns: ["primary_component"]
+label_vote_exclude_column: "is_transition"
+label_vote_exclude_values: [True, "True", "true", 1, "1"]
+train_ratio: 0.7
+val_ratio: 0.15
+test_ratio: 0.15
+seed: 42

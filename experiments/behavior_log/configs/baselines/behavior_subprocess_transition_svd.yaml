@@ -1,0 +1,10 @@
+dataset_name: "behavior_subprocess"
+method: "transition_count_svd"
+traces_path: "../dataset/processed/model_ready/subprocess/traces.csv"
+occurrence_matrix_path: "../dataset/processed/model_ready/subprocess/occurrence_matrix.csv"
+splits_path: "../dataset/processed/model_ready/subprocess/splits.csv"
+output_dir: "../dataset/processed/model_ready/subprocess/baselines/transition_svd"
+embedding_file: "embeddings.npz"
+state_file: "baseline_state.json"
+summary_file: "embedding_summary.json"
+n_components: 32

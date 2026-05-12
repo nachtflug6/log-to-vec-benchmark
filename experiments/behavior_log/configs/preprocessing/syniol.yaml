@@ -1,0 +1,4 @@
+raw_log_csv: experiments/behavior_log/artifacts/datasets/syniol_moderate_noise/raw/syniol_full.csv
+output_dir: experiments/behavior_log/artifacts/datasets/syniol_moderate_noise/preprocessed
+event_feature_file: event_features.npz
+preprocessor_state_file: preprocessor_state.json

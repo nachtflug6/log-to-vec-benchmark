@@ -1,0 +1,16 @@
+dataset_kind: "behavior_jsonl"
+dataset_name: "behavior_main"
+dataset_level: "main"
+input_path: "../dataset/processed/case_main_only.jsonl"
+output_dir: "../dataset/processed/model_ready/main"
+output_format: "csv"
+write_split_cache: false
+sample_id_field: "case_id"
+token_field: "main_operations"
+label_field: "has_failure"
+label_mode: "failure_success"
+metadata_fields: ["process_model_id", "operation_count", "has_failure"]
+train_ratio: 0.7
+val_ratio: 0.15
+test_ratio: 0.15
+seed: 42

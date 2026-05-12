@@ -1,0 +1,27 @@
+dataset_name: syniol_high_noise
+seed: 42
+num_trajectories: 120
+events_per_trajectory: 640
+behavior_ids: [0, 1, 2, 3, 4]
+behavior_probs: [0.18, 0.18, 0.18, 0.16, 0.30]
+trajectory_spacing_seconds: 3600.0
+min_step_seconds: 1.0
+max_step_seconds: 3.0
+segment_min_events: 48
+segment_max_events: 96
+transition_min_events: 8
+transition_max_events: 14
+irrelevant_noise_prob: 0.16
+severity_noise_prob: 0.10
+numeric_noise_std: 0.06
+component_noise_prob: 0.08
+dominant_behavior_threshold: 0.7
+state_delay_min_steps: 3
+state_delay_max_steps: 8
+state_noise_prob: 0.22
+state_update_prob: 0.35
+false_negative_prob: 0.18
+false_positive_prob: 0.14
+critical_prob_cap: 0.30
+raw_output_dir: experiments/behavior_log/artifacts/datasets/syniol_high_noise/raw
+raw_output_name: syniol_observable.csv

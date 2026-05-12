@@ -13,6 +13,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 from behavior_log.data.trace_data import tokenize_sequence
 
@@ -40,6 +41,9 @@ class TraceSequenceDataset(Dataset):
             self._encode_sequence(tokenize_sequence(sequence), token_vocab)
             for sequence in traces_df["sequence"].fillna("").astype(str)
         ]
+        template_keys = [tuple(sequence[: self.max_len]) for sequence in self.sequences]
+        template_vocab = {key: index for index, key in enumerate(sorted(set(template_keys)))}
+        self.template_ids = [template_vocab[key] for key in template_keys]
 
     def __len__(self) -> int:
         return len(self.sequences)
@@ -55,8 +59,10 @@ class TraceSequenceDataset(Dataset):
         return {
             "input_ids": input_ids,
             "attention_mask": attention_mask,
+            "row_index": torch.tensor(idx, dtype=torch.long),
             "sample_id": self.sample_ids[idx],
             "label": self.labels[idx],
+            "template_id": torch.tensor(self.template_ids[idx], dtype=torch.long),
         }
 
     def _encode_sequence(self, tokens: list[str], token_vocab: dict[str, int]) -> list[int]:
@@ -150,6 +156,23 @@ def masked_mean(hidden: torch.Tensor, attention_mask: torch.Tensor) -> torch.Ten
     return (hidden * mask).sum(dim=1) / torch.clamp(mask.sum(dim=1), min=1.0)
 
 
+def masked_max(hidden: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
+    expanded_mask = attention_mask.unsqueeze(-1).bool()
+    filled = hidden.masked_fill(~expanded_mask, float("-inf"))
+    pooled = torch.max(filled, dim=1).values
+    return torch.where(torch.isfinite(pooled), pooled, torch.zeros_like(pooled))
+
+
+def pool_hidden(hidden: torch.Tensor, attention_mask: torch.Tensor, pooling: str) -> torch.Tensor:
+    if pooling == "mean":
+        return masked_mean(hidden, attention_mask)
+    if pooling == "max":
+        return masked_max(hidden, attention_mask)
+    if pooling == "mean_max":
+        return torch.cat([masked_mean(hidden, attention_mask), masked_max(hidden, attention_mask)], dim=1)
+    raise ValueError(f"Unsupported pooling mode: {pooling}")
+
+
 class TraceTCNBackbone(nn.Module):
     def __init__(
         self,
@@ -165,8 +188,8 @@ class TraceTCNBackbone(nn.Module):
         dropout: float = 0.1,
     ) -> None:
         super().__init__()
-        if pooling != "mean":
-            raise ValueError("TraceTCNBackbone currently supports pooling='mean'.")
+        if pooling not in {"mean", "max", "mean_max"}:
+            raise ValueError("TraceTCNBackbone supports pooling in {'mean', 'max', 'mean_max'}.")
         self.pooling = pooling
         self.token_embedding = nn.Embedding(vocab_size, hidden_dim, padding_idx=padding_idx)
         self.position_embedding = nn.Embedding(max_len, hidden_dim)
@@ -181,8 +204,9 @@ class TraceTCNBackbone(nn.Module):
                 for layer_idx in range(depth)
             ]
         )
+        pooled_dim = hidden_dim * 2 if pooling == "mean_max" else hidden_dim
         self.projection = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim),
+            nn.Linear(pooled_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, embedding_dim),
         )
@@ -199,7 +223,7 @@ class TraceTCNBackbone(nn.Module):
 
     def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         hidden = self.encode_hidden(input_ids, attention_mask)
-        pooled = masked_mean(hidden, attention_mask)
+        pooled = pool_hidden(hidden, attention_mask, self.pooling)
         return hidden, self.projection(pooled)
 
 
@@ -217,8 +241,8 @@ class TraceBiGRUBackbone(nn.Module):
         dropout: float = 0.1,
     ) -> None:
         super().__init__()
-        if pooling != "mean":
-            raise ValueError("TraceBiGRUBackbone currently supports pooling='mean'.")
+        if pooling not in {"mean", "max", "mean_max"}:
+            raise ValueError("TraceBiGRUBackbone supports pooling in {'mean', 'max', 'mean_max'}.")
         if hidden_dim % 2 != 0:
             raise ValueError("BiGRU hidden_dim must be even because it is split across directions.")
         self.pooling = pooling
@@ -232,8 +256,9 @@ class TraceBiGRUBackbone(nn.Module):
             bidirectional=True,
             dropout=dropout if depth > 1 else 0.0,
         )
+        pooled_dim = hidden_dim * 2 if pooling == "mean_max" else hidden_dim
         self.projection = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim),
+            nn.Linear(pooled_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, embedding_dim),
         )
@@ -245,7 +270,57 @@ class TraceBiGRUBackbone(nn.Module):
         embedded = embedded * attention_mask.unsqueeze(-1)
         hidden, _ = self.gru(embedded)
         hidden = hidden * attention_mask.unsqueeze(-1)
-        pooled = masked_mean(hidden, attention_mask)
+        pooled = pool_hidden(hidden, attention_mask, self.pooling)
+        return hidden, self.projection(pooled)
+
+
+class TraceTransformerBackbone(nn.Module):
+    def __init__(
+        self,
+        *,
+        vocab_size: int,
+        hidden_dim: int,
+        embedding_dim: int,
+        padding_idx: int,
+        max_len: int,
+        pooling: str,
+        depth: int = 2,
+        dropout: float = 0.1,
+        nhead: int = 4,
+        feedforward_dim: int | None = None,
+    ) -> None:
+        super().__init__()
+        if pooling not in {"mean", "max", "mean_max"}:
+            raise ValueError("TraceTransformerBackbone supports pooling in {'mean', 'max', 'mean_max'}.")
+        if hidden_dim % nhead != 0:
+            raise ValueError("Transformer hidden_dim must be divisible by nhead.")
+        self.pooling = pooling
+        self.token_embedding = nn.Embedding(vocab_size, hidden_dim, padding_idx=padding_idx)
+        self.position_embedding = nn.Embedding(max_len, hidden_dim)
+        layer = nn.TransformerEncoderLayer(
+            d_model=hidden_dim,
+            nhead=nhead,
+            dim_feedforward=int(feedforward_dim or hidden_dim * 4),
+            dropout=dropout,
+            activation="gelu",
+            batch_first=True,
+        )
+        self.encoder = nn.TransformerEncoder(layer, num_layers=depth)
+        pooled_dim = hidden_dim * 2 if pooling == "mean_max" else hidden_dim
+        self.projection = nn.Sequential(
+            nn.Linear(pooled_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, embedding_dim),
+        )
+        self.hidden_size = hidden_dim
+
+    def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        positions = torch.arange(input_ids.shape[1], device=input_ids.device).unsqueeze(0)
+        hidden = self.token_embedding(input_ids) + self.position_embedding(positions)
+        key_padding_mask = attention_mask <= 0
+        hidden = self.encoder(hidden, src_key_padding_mask=key_padding_mask)
+        hidden = hidden * attention_mask.unsqueeze(-1)
+        pooled = pool_hidden(hidden, attention_mask, self.pooling)
         return hidden, self.projection(pooled)
 
 
@@ -260,6 +335,70 @@ class TraceSSLModel(nn.Module):
         hidden, embedding = self.backbone(input_ids, attention_mask)
         logits = self.reconstruction_head(hidden)
         return logits, embedding
+
+
+class TraceSeq2SeqAutoencoder(nn.Module):
+    """GRU encoder-decoder autoencoder with a single sequence embedding bottleneck."""
+
+    def __init__(
+        self,
+        *,
+        vocab_size: int,
+        hidden_dim: int,
+        embedding_dim: int,
+        padding_idx: int,
+        mask_idx: int,
+        max_len: int,
+        depth: int = 1,
+        dropout: float = 0.1,
+    ) -> None:
+        super().__init__()
+        if hidden_dim % 2 != 0:
+            raise ValueError("Seq2Seq GRU hidden_dim must be even because the encoder is bidirectional.")
+        self.max_len = max_len
+        self.depth = depth
+        self.mask_idx = mask_idx
+        self.token_embedding = nn.Embedding(vocab_size, hidden_dim, padding_idx=padding_idx)
+        self.position_embedding = nn.Embedding(max_len, hidden_dim)
+        self.encoder = nn.GRU(
+            input_size=hidden_dim,
+            hidden_size=hidden_dim // 2,
+            num_layers=depth,
+            batch_first=True,
+            bidirectional=True,
+            dropout=dropout if depth > 1 else 0.0,
+        )
+        self.to_embedding = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, embedding_dim),
+        )
+        self.decoder_init = nn.Linear(embedding_dim, depth * hidden_dim)
+        self.decoder = nn.GRU(
+            input_size=hidden_dim,
+            hidden_size=hidden_dim,
+            num_layers=depth,
+            batch_first=True,
+            dropout=dropout if depth > 1 else 0.0,
+        )
+        self.output_head = nn.Linear(hidden_dim, vocab_size)
+
+    def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        batch_size, seq_len = input_ids.shape
+        positions = torch.arange(seq_len, device=input_ids.device).unsqueeze(0)
+        embedded = self.token_embedding(input_ids) + self.position_embedding(positions)
+        embedded = embedded * attention_mask.unsqueeze(-1)
+        _, final_hidden = self.encoder(embedded)
+        final_hidden = final_hidden.view(self.depth, 2, batch_size, -1)
+        encoder_state = torch.cat([final_hidden[-1, 0], final_hidden[-1, 1]], dim=1)
+        sequence_embedding = self.to_embedding(encoder_state)
+
+        decoder_init = self.decoder_init(sequence_embedding).view(self.depth, batch_size, -1).contiguous()
+        decoder_token_ids = torch.full_like(input_ids, self.mask_idx)
+        decoder_inputs = self.token_embedding(decoder_token_ids) + self.position_embedding(positions)
+        decoder_hidden, _ = self.decoder(decoder_inputs, decoder_init)
+        logits = self.output_head(decoder_hidden)
+        return logits, sequence_embedding
 
 
 def build_trace_ssl_model(
@@ -287,6 +426,23 @@ def build_trace_ssl_model(
         )
     elif architecture == "bigru":
         backbone = TraceBiGRUBackbone(**common)
+    elif architecture == "transformer":
+        backbone = TraceTransformerBackbone(
+            **common,
+            nhead=int(encoder_cfg.get("nhead", 4)),
+            feedforward_dim=encoder_cfg.get("feedforward_dim"),
+        )
+    elif architecture == "seq2seq_gru":
+        return TraceSeq2SeqAutoencoder(
+            vocab_size=vocab_size,
+            hidden_dim=int(encoder_cfg["hidden_dim"]),
+            embedding_dim=int(encoder_cfg["embedding_dim"]),
+            padding_idx=token_vocab["[PAD]"],
+            mask_idx=token_vocab["[MASK]"],
+            max_len=max_len,
+            depth=int(encoder_cfg.get("depth", 1)),
+            dropout=float(encoder_cfg.get("dropout", 0.1)),
+        )
     else:
         raise ValueError(f"Unsupported encoder architecture: {architecture}")
     return TraceSSLModel(backbone=backbone, vocab_size=vocab_size)
@@ -298,6 +454,101 @@ def nt_xent_loss(z1: torch.Tensor, z2: torch.Tensor, *, temperature: float) -> t
     logits = torch.matmul(z1, z2.transpose(0, 1)) / temperature
     labels = torch.arange(z1.shape[0], device=z1.device)
     return 0.5 * (F.cross_entropy(logits, labels) + F.cross_entropy(logits.transpose(0, 1), labels))
+
+
+def template_aware_contrastive_loss(
+    z1: torch.Tensor,
+    z2: torch.Tensor,
+    template_ids: torch.Tensor,
+    *,
+    temperature: float,
+) -> torch.Tensor:
+    """Supervised contrastive loss where positives share the same sequence template."""
+
+    z1 = F.normalize(z1, dim=1)
+    z2 = F.normalize(z2, dim=1)
+    reps = torch.cat([z1, z2], dim=0)
+    labels = torch.cat([template_ids, template_ids], dim=0)
+    total = reps.shape[0]
+
+    logits = torch.matmul(reps, reps.transpose(0, 1)) / temperature
+    identity = torch.eye(total, dtype=torch.bool, device=reps.device)
+    positive_mask = labels.unsqueeze(0) == labels.unsqueeze(1)
+    positive_mask = positive_mask & ~identity
+
+    logits = logits.masked_fill(identity, -1e9)
+    log_prob = logits - torch.logsumexp(logits, dim=1, keepdim=True)
+
+    positive_counts = positive_mask.sum(dim=1)
+    valid = positive_counts > 0
+    per_anchor_loss = -(positive_mask.float() * log_prob).sum(dim=1) / torch.clamp(
+        positive_counts.float(),
+        min=1.0,
+    )
+    return per_anchor_loss[valid].mean()
+
+
+def similarity_aware_contrastive_loss(
+    z1: torch.Tensor,
+    z2: torch.Tensor,
+    target_similarity: torch.Tensor,
+    *,
+    temperature: float,
+    target_temperature: float,
+    target_top_k: int,
+) -> torch.Tensor:
+    """Match embedding similarities to soft sequence-similarity targets."""
+
+    z1 = F.normalize(z1, dim=1)
+    z2 = F.normalize(z2, dim=1)
+    reps = torch.cat([z1, z2], dim=0)
+    target = torch.cat(
+        [
+            torch.cat([target_similarity, target_similarity], dim=1),
+            torch.cat([target_similarity, target_similarity], dim=1),
+        ],
+        dim=0,
+    )
+    total = reps.shape[0]
+    identity = torch.eye(total, dtype=torch.bool, device=reps.device)
+
+    model_logits = torch.matmul(reps, reps.transpose(0, 1)) / temperature
+    model_logits = model_logits.masked_fill(identity, -1e9)
+
+    target_logits = target / target_temperature
+    target_logits = target_logits.masked_fill(identity, -1e9)
+    if target_top_k > 0 and target_top_k < total - 1:
+        keep = torch.zeros_like(target_logits, dtype=torch.bool)
+        topk_indices = torch.topk(target_logits, k=target_top_k, dim=1).indices
+        keep.scatter_(1, topk_indices, True)
+        target_logits = target_logits.masked_fill(~keep, -1e9)
+
+    target_probs = torch.softmax(target_logits, dim=1)
+    log_probs = torch.log_softmax(model_logits, dim=1)
+    return -(target_probs * log_probs).sum(dim=1).mean()
+
+
+def build_sequence_tfidf_matrix(
+    traces_df: pd.DataFrame,
+    *,
+    ngram_min: int,
+    ngram_max: int,
+):
+    docs = []
+    for sequence in traces_df["sequence"].fillna("").astype(str):
+        tokens = tokenize_sequence(sequence)
+        docs.append(" ".join(_encode_tfidf_token(token) for token in tokens))
+    vectorizer = TfidfVectorizer(
+        analyzer="word",
+        token_pattern=r"[^ ]+",
+        lowercase=False,
+        ngram_range=(ngram_min, ngram_max),
+    )
+    return vectorizer.fit_transform(docs)
+
+
+def _encode_tfidf_token(token: str) -> str:
+    return token.replace("\\", "\\\\").replace(" ", "\\s")
 
 
 def train_hdfs_contrastive_encoder(
@@ -322,6 +573,14 @@ def train_hdfs_contrastive_encoder(
     device = torch.device(requested_device)
 
     dataset = TraceSequenceDataset(train_df, token_vocab=token_vocab, max_len=max_len)
+    positive_target = str(objective_cfg.get("positive_target", "instance"))
+    sequence_tfidf_matrix = None
+    if positive_target == "sequence_similarity":
+        sequence_tfidf_matrix = build_sequence_tfidf_matrix(
+            train_df,
+            ngram_min=int(objective_cfg.get("similarity_ngram_min", 1)),
+            ngram_max=int(objective_cfg.get("similarity_ngram_max", 3)),
+        )
     generator = torch.Generator()
     generator.manual_seed(int(cfg.get("seed", 42)))
     loader = DataLoader(
@@ -338,15 +597,27 @@ def train_hdfs_contrastive_encoder(
         encoder_cfg=encoder_cfg,
         max_len=max_len,
     ).to(device)
-    view_generator = TokenSequenceViewGenerator(
+    view1_generator = TokenSequenceViewGenerator(
         pad_id=token_vocab["[PAD]"],
         mask_id=token_vocab["[MASK]"],
-        token_mask_ratio=float(augmentation["token_mask_ratio"]),
-        token_dropout_ratio=float(augmentation["token_dropout_ratio"]),
+        token_mask_ratio=float(augmentation.get("view1_token_mask_ratio", augmentation["token_mask_ratio"])),
+        token_dropout_ratio=float(augmentation.get("view1_token_dropout_ratio", augmentation["token_dropout_ratio"])),
+    )
+    view2_generator = TokenSequenceViewGenerator(
+        pad_id=token_vocab["[PAD]"],
+        mask_id=token_vocab["[MASK]"],
+        token_mask_ratio=float(augmentation.get("view2_token_mask_ratio", augmentation["token_mask_ratio"])),
+        token_dropout_ratio=float(augmentation.get("view2_token_dropout_ratio", augmentation["token_dropout_ratio"])),
     )
     reconstruction_generator = MaskedEventViewGenerator(
         mask_id=token_vocab["[MASK]"],
         mask_ratio=float(augmentation.get("reconstruction_mask_ratio", augmentation["token_mask_ratio"])),
+    )
+    denoising_generator = TokenSequenceViewGenerator(
+        pad_id=token_vocab["[PAD]"],
+        mask_id=token_vocab["[MASK]"],
+        token_mask_ratio=float(augmentation.get("denoising_token_mask_ratio", augmentation.get("token_mask_ratio", 0.0))),
+        token_dropout_ratio=float(augmentation.get("denoising_token_dropout_ratio", augmentation.get("token_dropout_ratio", 0.0))),
     )
 
     optimizer = torch.optim.AdamW(
@@ -357,7 +628,9 @@ def train_hdfs_contrastive_encoder(
     epochs = int(optimization["epochs"])
     temperature = float(optimization["temperature"])
     contrastive_weight = float(objective_cfg.get("contrastive_weight", 1.0 if objective_type in {"contrastive", "hybrid"} else 0.0))
-    reconstruction_weight = float(objective_cfg.get("reconstruction_weight", 1.0 if objective_type in {"reconstruction", "hybrid"} else 0.0))
+    reconstruction_weight = float(
+        objective_cfg.get("reconstruction_weight", 1.0 if objective_type in {"reconstruction", "hybrid", "autoencoder"} else 0.0)
+    )
     losses: list[float] = []
     contrastive_losses: list[float] = []
     reconstruction_losses: list[float] = []
@@ -370,20 +643,54 @@ def train_hdfs_contrastive_encoder(
         for batch in loader:
             input_ids = batch["input_ids"].to(device)
             attention_mask = batch["attention_mask"].to(device)
+            template_ids = batch["template_id"].to(device)
+            row_indices = batch["row_index"].cpu().numpy()
             loss_terms: list[torch.Tensor] = []
 
             if contrastive_weight > 0:
-                view1_ids, view1_mask = view_generator(input_ids, attention_mask)
-                view2_ids, view2_mask = view_generator(input_ids, attention_mask)
+                view1_ids, view1_mask = view1_generator(input_ids, attention_mask)
+                view2_ids, view2_mask = view2_generator(input_ids, attention_mask)
                 _, z1 = model(view1_ids, view1_mask)
                 _, z2 = model(view2_ids, view2_mask)
-                contrastive_loss = nt_xent_loss(z1, z2, temperature=temperature)
+                if positive_target == "template_id":
+                    contrastive_loss = template_aware_contrastive_loss(
+                        z1,
+                        z2,
+                        template_ids,
+                        temperature=temperature,
+                    )
+                elif positive_target == "sequence_similarity":
+                    if sequence_tfidf_matrix is None:
+                        raise RuntimeError("sequence_tfidf_matrix was not initialized.")
+                    batch_similarity = (
+                        sequence_tfidf_matrix[row_indices] @ sequence_tfidf_matrix[row_indices].T
+                    ).toarray()
+                    target_similarity = torch.tensor(batch_similarity, dtype=torch.float32, device=device)
+                    contrastive_loss = similarity_aware_contrastive_loss(
+                        z1,
+                        z2,
+                        target_similarity,
+                        temperature=temperature,
+                        target_temperature=float(objective_cfg.get("target_temperature", 0.1)),
+                        target_top_k=int(objective_cfg.get("target_top_k", 8)),
+                    )
+                else:
+                    contrastive_loss = nt_xent_loss(z1, z2, temperature=temperature)
                 loss_terms.append(contrastive_weight * contrastive_loss)
                 epoch_contrastive_losses.append(float(contrastive_loss.detach().cpu().item()))
 
             if reconstruction_weight > 0:
-                masked_ids, reconstruction_labels = reconstruction_generator(input_ids, attention_mask)
-                logits, _ = model(masked_ids, attention_mask)
+                if objective_type == "autoencoder":
+                    corrupted_ids, corrupted_mask = denoising_generator(input_ids, attention_mask)
+                    reconstruction_labels = torch.where(
+                        attention_mask > 0,
+                        input_ids,
+                        torch.full_like(input_ids, -100),
+                    )
+                    logits, _ = model(corrupted_ids, corrupted_mask)
+                else:
+                    masked_ids, reconstruction_labels = reconstruction_generator(input_ids, attention_mask)
+                    logits, _ = model(masked_ids, attention_mask)
                 reconstruction_loss = F.cross_entropy(
                     logits.reshape(-1, logits.shape[-1]),
                     reconstruction_labels.reshape(-1),

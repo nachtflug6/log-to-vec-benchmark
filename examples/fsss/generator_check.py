@@ -809,7 +809,7 @@ def run_plots(df: pd.DataFrame, output_dir: Path, trajectory_id: int | None = No
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Unified inspection script for generator_v2 datasets.")
+    parser = argparse.ArgumentParser(description="Unified inspection script for generated datasets.")
     parser.add_argument("--dataset-dir", type=str, required=True, help="Directory containing trajectories.csv, windows.npz, metadata.json")
     parser.add_argument("--output-dir", type=str, default=None, help="Output directory (default: <dataset-dir>/inspection)")
     parser.add_argument("--trajectory-id", type=int, default=None, help="Optional trajectory id for the overview plot")

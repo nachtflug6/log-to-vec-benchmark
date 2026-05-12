@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 import sys
+import json
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC_DIR = ROOT / "src"
@@ -14,6 +16,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from behavior_log.data.trace_data import load_table
+from behavior_log.evaluation.subprocess_embedding_evaluator import SubprocessEmbeddingEvaluator
 from behavior_log.evaluation.trace_embedding_evaluator import HDFSTraceEmbeddingEvaluator
 from behavior_log.utils.io import load_yaml, save_json
 
@@ -62,10 +65,75 @@ def _align_prepared_tables(
     return traces_df, occurrence_df
 
 
+def _load_jsonl(path: Path) -> pd.DataFrame:
+    records = []
+    with path.open("r", encoding="utf-8") as handle:
+        for line_number, line in enumerate(handle, start=1):
+            stripped = line.strip()
+            if not stripped:
+                continue
+            try:
+                records.append(json.loads(stripped))
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"Invalid JSON on line {line_number} of {path}: {exc}") from exc
+    return pd.DataFrame.from_records(records)
+
+
+def _evaluate_behavior_subprocess(config_name: str, cfg: dict) -> None:
+    embeddings_path = _resolve_path(cfg["embedding_file"])
+    metadata_path = _resolve_path(cfg["metadata_path"])
+    output_dir = _resolve_path(cfg["output_dir"])
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    embedding_data = _load_embeddings(embeddings_path)
+    metadata_df = _load_jsonl(metadata_path)
+    evaluator = SubprocessEmbeddingEvaluator(
+        retrieval_ks=list(cfg.get("retrieval_ks", [5, 10])),
+        logistic_max_iter=int(cfg.get("logistic_max_iter", 2000)),
+        logistic_class_weight=cfg.get("logistic_class_weight", "balanced"),
+        standardize_probe_features=bool(cfg.get("standardize_probe_features", True)),
+        distance_gap_max_samples=int(cfg.get("distance_gap_max_samples", 1000)),
+        random_state=int(cfg.get("random_state", 0)),
+    )
+    result = evaluator.evaluate(
+        embeddings=embedding_data["embeddings"].astype(np.float32),
+        sample_id=embedding_data["sample_id"].astype(str),
+        split=embedding_data["split"].astype(str),
+        metadata_df=metadata_df,
+    )
+
+    metrics = {
+        "method_name": cfg.get("method_name", config_name),
+        "dataset_name": cfg.get("dataset_name"),
+        "dataset_type": "behavior_subprocess",
+        "embedding_file": str(embeddings_path),
+        "metadata_path": str(metadata_path),
+        **result.metrics,
+    }
+    metrics_path = output_dir / cfg.get("metrics_file", "metrics.json")
+    artifacts_path = output_dir / cfg.get("artifacts_file", "evaluation_artifacts.npz")
+    save_json(metrics, metrics_path)
+    np.savez_compressed(artifacts_path, **result.artifacts)
+
+    print("Behavior subprocess embedding evaluation:")
+    print(f"  method: {metrics['method_name']}")
+    print(f"  samples: {metrics['n_samples']}")
+    print(f"  embedding_dim: {metrics['embedding_dim']}")
+    print(f"  main_activity_p@5: {metrics.get('main_activity_retrieval_p_at_5_test')}")
+    print(f"  template_p@5: {metrics.get('template_id_retrieval_p_at_5_test')}")
+    print(f"  main_activity_macro_f1: {metrics.get('main_activity_linear_probe_test_macro_f1')}")
+    print(f"  resource_macro_f1: {metrics.get('resource_linear_probe_test_macro_f1')}")
+    print(f"  duration_r2: {metrics.get('duration_seconds_linear_probe_test_r2')}")
+    print(f"  saved: {metrics_path}")
+
+
 def main() -> None:
     config_name = sys.argv[1] if len(sys.argv) > 1 else "hdfs_small_ts2vec"
     cfg = load_yaml(_resolve_config(config_name))
     dataset_type = str(cfg.get("dataset_type", "hdfs")).lower()
+    if dataset_type == "behavior_subprocess":
+        _evaluate_behavior_subprocess(config_name, cfg)
+        return
     if dataset_type not in {"hdfs", "bgl"}:
         raise NotImplementedError("Stage 05 currently implements HDFS/BGL trace-level evaluation.")
 

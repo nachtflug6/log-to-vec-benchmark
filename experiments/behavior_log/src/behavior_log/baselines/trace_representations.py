@@ -8,6 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy.sparse import csr_matrix
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.preprocessing import StandardScaler
@@ -80,6 +81,8 @@ class TraceRepresentationBuilder:
             )
 
         docs = traces_df["sequence"].fillna("").astype(str).to_numpy()
+        token_sequences = [self._parse_sequence(value) for value in docs]
+        vectorizer_docs = [" ".join(self._encode_token(token) for token in tokens) for tokens in token_sequences]
 
         if self.method == "tfidf_svd":
             self.tfidf_vectorizer = TfidfVectorizer(
@@ -88,8 +91,9 @@ class TraceRepresentationBuilder:
                 lowercase=False,
                 ngram_range=(self.ngram_min, self.ngram_max),
             )
-            train_matrix = self.tfidf_vectorizer.fit_transform(docs[train_mask])
-            all_matrix = self.tfidf_vectorizer.transform(docs)
+            vectorizer_docs = np.asarray(vectorizer_docs, dtype=object)
+            train_matrix = self.tfidf_vectorizer.fit_transform(vectorizer_docs[train_mask])
+            all_matrix = self.tfidf_vectorizer.transform(vectorizer_docs)
             svd_dim = min(self.n_components, train_matrix.shape[0], train_matrix.shape[1])
             self.svd = TruncatedSVD(n_components=svd_dim, random_state=0)
             self.svd.fit(train_matrix)
@@ -114,8 +118,9 @@ class TraceRepresentationBuilder:
                 lowercase=False,
                 ngram_range=(self.ngram_min, self.ngram_max),
             )
-            train_matrix = self.count_vectorizer.fit_transform(docs[train_mask])
-            all_matrix = self.count_vectorizer.transform(docs)
+            vectorizer_docs = np.asarray(vectorizer_docs, dtype=object)
+            train_matrix = self.count_vectorizer.fit_transform(vectorizer_docs[train_mask])
+            all_matrix = self.count_vectorizer.transform(vectorizer_docs)
             svd_dim = min(self.n_components, train_matrix.shape[0], train_matrix.shape[1])
             self.svd = TruncatedSVD(n_components=svd_dim, random_state=0)
             self.svd.fit(train_matrix)
@@ -128,6 +133,25 @@ class TraceRepresentationBuilder:
                     "embedding_dim": int(embeddings.shape[1]),
                     "ngram_range": [self.ngram_min, self.ngram_max],
                     "vocab_size": int(len(self.count_vectorizer.vocabulary_)),
+                    "explained_variance_ratio": self.svd.explained_variance_ratio_.tolist(),
+                    "total_explained_variance_ratio": float(np.sum(self.svd.explained_variance_ratio_)),
+                },
+            )
+
+        if self.method == "transition_count_svd":
+            all_matrix, vocab = self._transition_count_matrix(token_sequences)
+            train_matrix = all_matrix[train_mask]
+            svd_dim = min(self.n_components, train_matrix.shape[0], train_matrix.shape[1])
+            self.svd = TruncatedSVD(n_components=svd_dim, random_state=0)
+            self.svd.fit(train_matrix)
+            embeddings = self.svd.transform(all_matrix).astype(np.float32)
+            return TraceRepresentationResult(
+                embeddings=embeddings,
+                summary={
+                    "method": self.method,
+                    "input_dim": int(all_matrix.shape[1]),
+                    "embedding_dim": int(embeddings.shape[1]),
+                    "transition_vocab_size": int(len(vocab)),
                     "explained_variance_ratio": self.svd.explained_variance_ratio_.tolist(),
                     "total_explained_variance_ratio": float(np.sum(self.svd.explained_variance_ratio_)),
                 },
@@ -159,3 +183,47 @@ class TraceRepresentationBuilder:
     def _occurrence_features(occurrence_df: pd.DataFrame) -> np.ndarray:
         feature_columns = [column for column in occurrence_df.columns if column not in {"sample_id", "label", "split"}]
         return occurrence_df[feature_columns].to_numpy(dtype=np.float32)
+
+    @staticmethod
+    def _parse_sequence(value: str) -> list[str]:
+        text = str(value)
+        try:
+            parsed = json.loads(text)
+        except json.JSONDecodeError:
+            return [token for token in text.split(" ") if token]
+        if isinstance(parsed, list):
+            return [str(token) for token in parsed if str(token)]
+        return [str(parsed)] if str(parsed) else []
+
+    @staticmethod
+    def _encode_token(token: str) -> str:
+        return token.replace("\\", "\\\\").replace(" ", "\\s")
+
+    @staticmethod
+    def _transition_count_matrix(token_sequences: list[list[str]]) -> tuple[csr_matrix, dict[str, int]]:
+        vocab: dict[str, int] = {}
+        row_indices: list[int] = []
+        col_indices: list[int] = []
+        values: list[float] = []
+        per_row_counts: list[dict[int, float]] = []
+
+        for tokens in token_sequences:
+            counts: dict[int, float] = {}
+            for left, right in zip(tokens, tokens[1:]):
+                transition = f"{left}->{right}"
+                col = vocab.setdefault(transition, len(vocab))
+                counts[col] = counts.get(col, 0.0) + 1.0
+            per_row_counts.append(counts)
+
+        for row_index, counts in enumerate(per_row_counts):
+            for col_index, value in counts.items():
+                row_indices.append(row_index)
+                col_indices.append(col_index)
+                values.append(value)
+
+        matrix = csr_matrix(
+            (values, (row_indices, col_indices)),
+            shape=(len(token_sequences), len(vocab)),
+            dtype=np.float32,
+        )
+        return matrix, vocab

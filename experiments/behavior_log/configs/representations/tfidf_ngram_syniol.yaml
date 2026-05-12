@@ -1,0 +1,7 @@
+run_name: tfidf_ngram_syniol
+window_file: experiments/behavior_log/artifacts/datasets/syniol_moderate_noise/windows/windows.npz
+output_dir: experiments/behavior_log/artifacts/runs/tfidf_ngram_syniol
+method: tfidf_ngram
+state_file: representation_state.json
+summary_file: representation_summary.json
+n_components: 64

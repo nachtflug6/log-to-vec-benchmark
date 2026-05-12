@@ -66,17 +66,17 @@ def build_hdfs_component_specs(cfg: dict) -> dict[str, dict]:
     if token_column != "sequence":
         raise ValueError(f"HDFS currently expects token_column='sequence', got {token_column!r}.")
 
-    if objective_type not in {"contrastive", "reconstruction", "hybrid"}:
+    if objective_type not in {"contrastive", "reconstruction", "hybrid", "autoencoder"}:
         raise ValueError(
             "HDFS implementation currently supports objective.type in "
-            "{'contrastive', 'reconstruction', 'hybrid'}."
+            "{'contrastive', 'reconstruction', 'hybrid', 'autoencoder'}."
         )
 
     contrastive_weight = float(
         objective.get("contrastive_weight", 1.0 if objective_type in {"contrastive", "hybrid"} else 0.0)
     )
     reconstruction_weight = float(
-        objective.get("reconstruction_weight", 1.0 if objective_type in {"reconstruction", "hybrid"} else 0.0)
+        objective.get("reconstruction_weight", 1.0 if objective_type in {"reconstruction", "hybrid", "autoencoder"} else 0.0)
     )
     if contrastive_weight < 0.0 or reconstruction_weight < 0.0:
         raise ValueError("Objective weights must be non-negative.")
@@ -87,18 +87,32 @@ def build_hdfs_component_specs(cfg: dict) -> dict[str, dict]:
     negative_strategy = str(training_rule.get("negative_strategy", "in_batch_different_sample"))
     use_labels = bool(training_rule.get("use_labels", False))
     if contrastive_weight > 0.0:
-        if positive_strategy != "same_sample_two_views":
+        positive_target = str(objective.get("positive_target", "instance"))
+        allowed_pair = (
+            positive_strategy == "same_sample_two_views"
+            and negative_strategy == "in_batch_different_sample"
+            and positive_target == "instance"
+        ) or (
+            positive_strategy == "same_template"
+            and negative_strategy == "different_template"
+            and positive_target == "template_id"
+        ) or (
+            positive_strategy == "similar_sequence"
+            and negative_strategy == "distant_sequence"
+            and positive_target == "sequence_similarity"
+        )
+        if not allowed_pair:
             raise ValueError(
-                "HDFS contrastive implementation requires "
-                "training_rule.positive_strategy='same_sample_two_views'."
-            )
-        if negative_strategy != "in_batch_different_sample":
-            raise ValueError(
-                "HDFS contrastive implementation requires "
-                "training_rule.negative_strategy='in_batch_different_sample'."
+                "Contrastive implementation supports either "
+                "(positive_strategy='same_sample_two_views', negative_strategy='in_batch_different_sample', "
+                "objective.positive_target='instance') or "
+                "(positive_strategy='same_template', negative_strategy='different_template', "
+                "objective.positive_target='template_id') or "
+                "(positive_strategy='similar_sequence', negative_strategy='distant_sequence', "
+                "objective.positive_target='sequence_similarity')."
             )
         if use_labels:
-            raise ValueError("HDFS contrastive implementation requires training_rule.use_labels=false.")
+            raise ValueError("SSL contrastive implementation requires training_rule.use_labels=false.")
     elif use_labels:
         raise ValueError("HDFS SSL implementation does not use labels during training.")
 
@@ -123,8 +137,11 @@ def build_hdfs_component_specs(cfg: dict) -> dict[str, dict]:
         use_labels=use_labels,
     )
     encoder_architecture = str(encoder["architecture"])
-    if encoder_architecture not in {"tcn", "bigru"}:
-        raise ValueError("HDFS SSL implementation currently supports encoder.architecture='tcn' or 'bigru'.")
+    if encoder_architecture not in {"tcn", "bigru", "transformer", "seq2seq_gru"}:
+        raise ValueError(
+            "SSL implementation currently supports encoder.architecture in "
+            "{'tcn', 'bigru', 'transformer', 'seq2seq_gru'}."
+        )
 
     sequence_encoder = SequenceEncoderSpec(
         name="trace_sequence_encoder",
@@ -137,11 +154,13 @@ def build_hdfs_component_specs(cfg: dict) -> dict[str, dict]:
         pooling=str(encoder["pooling"]),
     )
     objective_name_by_type = {
+        "autoencoder": "sequence_autoencoder_objective",
         "contrastive": "in_batch_contrastive_objective",
         "reconstruction": "masked_event_reconstruction_objective",
         "hybrid": "hybrid_ssl_objective",
     }
     objective_type_by_type = {
+        "autoencoder": "full_sequence_cross_entropy",
         "contrastive": "contrastive_nt_xent",
         "reconstruction": "masked_event_cross_entropy",
         "hybrid": "contrastive_nt_xent_plus_masked_event_cross_entropy",

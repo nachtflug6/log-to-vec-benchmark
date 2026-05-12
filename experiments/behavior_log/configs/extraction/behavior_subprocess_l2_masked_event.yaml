@@ -1,0 +1,12 @@
+run_name: "behavior_subprocess_l2_masked_event"
+dataset_name: "behavior_subprocess"
+dataset_dir: "../dataset/processed/model_ready/subprocess"
+traces_path: "../dataset/processed/model_ready/subprocess/traces.csv"
+checkpoint_path: "../dataset/processed/model_ready/subprocess/runs/l2_masked_event/model.pt"
+output_dir: "../dataset/processed/model_ready/subprocess/embeddings/l2_masked_event"
+embedding_file: "embeddings.npz"
+summary_file: "embedding_summary.json"
+split: "all"
+batch_size: 256
+device: "auto"
+l2_normalize: false

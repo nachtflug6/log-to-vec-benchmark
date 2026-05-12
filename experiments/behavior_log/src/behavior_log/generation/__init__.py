@@ -1,5 +1,5 @@
 """Synthetic raw log generation."""
 
-from behavior_log.generation.generator_v4 import LatentBehaviorLogGeneratorV4
+from behavior_log.generation.syniol import SynIOLGenerator
 
-__all__ = ["LatentBehaviorLogGeneratorV4"]
+__all__ = ["SynIOLGenerator"]

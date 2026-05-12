@@ -85,6 +85,16 @@ class PreparedTrace:
     end_time: str = ""
 
 
+@dataclass
+class PreparedJsonlRecord:
+    sample_id: str
+    label: str
+    tokens: list[str]
+    metadata: dict[str, Any]
+    raw: dict[str, Any]
+    split: str = ""
+
+
 def resolve_config(config_name_or_path: str) -> Path:
     raw = Path(config_name_or_path)
     if raw.suffix in {".yaml", ".yml"}:
@@ -102,6 +112,12 @@ def normalize_bool(value: Any) -> bool:
         return value
     text = str(value).strip().lower()
     return text in {"1", "true", "yes", "y"}
+
+
+def normalize_label(value: Any, cfg: dict[str, Any]) -> str:
+    if str(cfg.get("label_mode", "")).lower() == "failure_success":
+        return "failure" if normalize_bool(value) else "success"
+    return str(value)
 
 
 def coerce_sort_value(value: str) -> Any:
@@ -457,6 +473,47 @@ def assign_splits(
     return split_map
 
 
+def assign_splits_for_labels(
+    labels_by_sample: dict[str, str],
+    *,
+    train_ratio: float,
+    val_ratio: float,
+    test_ratio: float,
+    seed: int,
+) -> dict[str, str]:
+    if abs((train_ratio + val_ratio + test_ratio) - 1.0) > 1e-9:
+        raise ValueError("train_ratio + val_ratio + test_ratio must equal 1.0")
+
+    rng = Random(seed)
+    split_map: dict[str, str] = {}
+    by_label: dict[str, list[str]] = defaultdict(list)
+    for sample_id, label in labels_by_sample.items():
+        by_label[label].append(sample_id)
+
+    ratios = [("train", train_ratio), ("val", val_ratio), ("test", test_ratio)]
+    for label, sample_ids in by_label.items():
+        sample_ids = sorted(sample_ids)
+        rng.shuffle(sample_ids)
+        n_samples = len(sample_ids)
+        raw_counts = [(split, n_samples * ratio) for split, ratio in ratios]
+        counts = {split: int(raw) for split, raw in raw_counts}
+        remaining = n_samples - sum(counts.values())
+        remainders = sorted(
+            ((split, raw - int(raw)) for split, raw in raw_counts),
+            key=lambda item: (-item[1], item[0]),
+        )
+        for split, _ in remainders[:remaining]:
+            counts[split] += 1
+
+        cursor = 0
+        for split, _ in ratios:
+            for sample_id in sample_ids[cursor : cursor + counts[split]]:
+                split_map[sample_id] = split
+            cursor += counts[split]
+
+    return split_map
+
+
 def attach_splits(traces: dict[str, PreparedTrace], split_map: dict[str, str]) -> None:
     for sample_id, trace in traces.items():
         trace.split = split_map[sample_id]
@@ -471,7 +528,7 @@ def build_traces_rows(traces: dict[str, PreparedTrace]) -> list[dict[str, Any]]:
                 "sample_id": trace.sample_id,
                 "label": trace.label,
                 "split": trace.split,
-                "sequence": " ".join(trace.tokens),
+                "sequence": json.dumps(trace.tokens, ensure_ascii=False),
                 "trace_length": trace.trace_length,
             }
         )
@@ -592,10 +649,10 @@ def summarize_dataset(
         "output_dir": str(resolve_path(cfg["output_dir"])),
         "output_format": cfg["output_format"],
         "write_split_cache": bool(cfg.get("write_split_cache", False)),
-        "group_key": cfg["group_key"],
-        "token_column": cfg["token_column"],
-        "label_column": cfg["label_column"],
-        "sort_columns": cfg["sort_columns"],
+        "group_key": cfg.get("group_key", cfg.get("sample_id_field", "")),
+        "token_column": cfg.get("token_column", cfg.get("token_field", "")),
+        "label_column": cfg.get("label_column", cfg.get("label_field", "")),
+        "sort_columns": cfg.get("sort_columns", []),
         "total_rows": load_stats["total_rows"],
         "missing_group_key_rows": load_stats["missing_group_key_rows"],
         "missing_token_rows": load_stats["missing_token_rows"],
@@ -612,6 +669,176 @@ def summarize_dataset(
             "max": max(latencies) if latencies else 0.0,
         },
     }
+
+
+def list_tokens(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item) for item in value if str(item)]
+    return [str(value)] if str(value) else []
+
+
+def extract_behavior_tokens(row: dict[str, Any], cfg: dict[str, Any]) -> list[str]:
+    dataset_level = str(cfg.get("dataset_level", "")).lower()
+    if dataset_level in {"main", "subprocess"}:
+        return list_tokens(row.get(str(cfg["token_field"])))
+    if dataset_level == "hierarchical":
+        operations = row.get("operations", [])
+        tokens: list[str] = []
+        for operation in operations if isinstance(operations, list) else []:
+            if not isinstance(operation, dict):
+                continue
+            main_activity = str(operation.get("main_activity", ""))
+            resource = str(operation.get("resource", ""))
+            token = f"{main_activity}|{resource}" if resource else main_activity
+            if token:
+                tokens.append(token)
+        return tokens
+    raise ValueError(f"Unsupported behavior dataset_level: {cfg.get('dataset_level')}")
+
+
+def extract_behavior_metadata(row: dict[str, Any], cfg: dict[str, Any]) -> dict[str, Any]:
+    metadata: dict[str, Any] = {}
+    for field_name in cfg.get("metadata_fields", []):
+        metadata[str(field_name)] = row.get(str(field_name), "")
+    if str(cfg.get("dataset_level", "")).lower() == "hierarchical":
+        metadata["subprocess_count"] = row.get("subprocess_count", 0)
+        metadata["sub_event_count"] = row.get("sub_event_count", 0)
+    return metadata
+
+
+def load_behavior_jsonl_records(cfg: dict[str, Any]) -> tuple[dict[str, PreparedJsonlRecord], dict[str, Any]]:
+    input_path = resolve_path(cfg["input_path"])
+    sample_id_field = str(cfg["sample_id_field"])
+    label_field = str(cfg["label_field"])
+
+    records: dict[str, PreparedJsonlRecord] = {}
+    total_rows = 0
+    missing_sample_id_rows = 0
+    missing_token_rows = 0
+    with input_path.open(encoding="utf-8") as fh:
+        for line_number, line in enumerate(fh, start=1):
+            if not line.strip():
+                continue
+            total_rows += 1
+            row = json.loads(line)
+            sample_id = str(row.get(sample_id_field, "")).strip()
+            if not sample_id:
+                missing_sample_id_rows += 1
+                continue
+            tokens = extract_behavior_tokens(row, cfg)
+            if not tokens:
+                missing_token_rows += 1
+                continue
+            label = normalize_label(row.get(label_field, ""), cfg)
+            metadata = extract_behavior_metadata(row, cfg)
+            metadata["source_line"] = line_number
+            records[sample_id] = PreparedJsonlRecord(
+                sample_id=sample_id,
+                label=label,
+                tokens=tokens,
+                metadata=metadata,
+                raw=row,
+            )
+
+    return records, {
+        "input_path": str(input_path),
+        "total_rows": total_rows,
+        "missing_group_key_rows": missing_sample_id_rows,
+        "missing_token_rows": missing_token_rows,
+    }
+
+
+def build_behavior_traces(records: dict[str, PreparedJsonlRecord]) -> dict[str, PreparedTrace]:
+    traces: dict[str, PreparedTrace] = {}
+    for sample_id, record in records.items():
+        traces[sample_id] = PreparedTrace(
+            sample_id=sample_id,
+            label=record.label,
+            split=record.split,
+            tokens=record.tokens,
+            trace_length=len(record.tokens),
+            latency=float(record.metadata.get("duration_seconds", 0.0) or 0.0),
+            start_time=str(record.metadata.get("start_time", "")),
+            end_time=str(record.metadata.get("end_time", "")),
+            event_counts=Counter(record.tokens),
+            metadata={key: str(value) for key, value in record.metadata.items()},
+        )
+    return traces
+
+
+def build_behavior_records_rows(records: dict[str, PreparedJsonlRecord]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for sample_id in sorted(records):
+        record = records[sample_id]
+        row = dict(record.raw)
+        row["sample_id"] = sample_id
+        row["label"] = record.label
+        row["split"] = record.split
+        row["tokens"] = record.tokens
+        rows.append(row)
+    return rows
+
+
+def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as fh:
+        for row in rows:
+            fh.write(json.dumps(row, ensure_ascii=False))
+            fh.write("\n")
+
+
+def prepare_behavior_jsonl(cfg: dict[str, Any]) -> None:
+    records, load_stats = load_behavior_jsonl_records(cfg)
+    labels_by_sample = {sample_id: record.label for sample_id, record in records.items()}
+    split_map = assign_splits_for_labels(
+        labels_by_sample,
+        train_ratio=float(cfg["train_ratio"]),
+        val_ratio=float(cfg["val_ratio"]),
+        test_ratio=float(cfg["test_ratio"]),
+        seed=int(cfg["seed"]),
+    )
+    for sample_id, split in split_map.items():
+        records[sample_id].split = split
+
+    traces = build_behavior_traces(records)
+    output_dir = resolve_path(cfg["output_dir"])
+    output_dir.mkdir(parents=True, exist_ok=True)
+    token_vocab = sorted({token for trace in traces.values() for token in trace.event_counts}, key=str)
+    output_format = str(cfg.get("output_format", "csv")).lower()
+    traces_rows = build_traces_rows(traces)
+    occurrence_rows = build_occurrence_rows(traces, token_vocab)
+    metadata_rows = build_metadata_rows(traces)
+    splits_rows = build_splits_rows(traces)
+
+    write_table(output_dir / f"traces.{output_format}", traces_rows, output_format=output_format)
+    write_table(
+        output_dir / f"occurrence_matrix.{output_format}",
+        occurrence_rows,
+        output_format=output_format,
+    )
+    write_table(output_dir / f"metadata.{output_format}", metadata_rows, output_format=output_format)
+    write_table(output_dir / f"splits.{output_format}", splits_rows, output_format=output_format)
+    write_jsonl(output_dir / "records.jsonl", build_behavior_records_rows(records))
+    save_json({"tokens": token_vocab}, output_dir / "vocab.json")
+
+    summary = summarize_dataset(cfg, traces, split_map, load_stats)
+    summary.update(
+        {
+            "dataset_level": cfg.get("dataset_level"),
+            "label_mode": cfg.get("label_mode", ""),
+            "label_field": cfg["label_field"],
+        }
+    )
+    save_json(summary, output_dir / "summary.json")
+
+    print(f"Prepared {summary['dataset_name']}")
+    print(f"Samples: {summary['n_traces']}")
+    print(f"Rows consumed: {summary['total_rows']}")
+    print(f"Label counts: {summary['label_counts']}")
+    print(f"Split counts: {summary['split_counts']}")
+    print(f"Output: {output_dir}")
 
 
 def prepare_hdfs(cfg: dict[str, Any]) -> None:
@@ -832,6 +1059,9 @@ def main() -> None:
         return
     if dataset_kind == "bgl":
         prepare_bgl(cfg)
+        return
+    if dataset_kind == "behavior_jsonl":
+        prepare_behavior_jsonl(cfg)
         return
     raise ValueError(f"Unsupported dataset_kind: {cfg['dataset_kind']}")
 

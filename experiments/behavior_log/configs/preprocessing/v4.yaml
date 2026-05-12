@@ -1,4 +1,0 @@
-raw_log_csv: experiments/behavior_log/artifacts/datasets/latent_behavior_sequence_v4/raw/raw_logs.csv
-output_dir: experiments/behavior_log/artifacts/datasets/latent_behavior_sequence_v4/preprocessed
-event_feature_file: event_features.npz
-preprocessor_state_file: preprocessor_state.json

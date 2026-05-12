@@ -1,0 +1,6 @@
+run_name: raw_flatten_syniol
+window_file: experiments/behavior_log/artifacts/datasets/syniol_moderate_noise/windows/windows.npz
+output_dir: experiments/behavior_log/artifacts/runs/raw_flatten_syniol
+method: raw_flatten
+state_file: representation_state.json
+summary_file: representation_summary.json

@@ -1,0 +1,24 @@
+run_name: "syniol_ts2vec"
+dataset_name: "syniol_moderate_noise"
+model_type: "ts2vec_style_trace"
+dry_run_only: true
+
+traces_path: "experiments/behavior_log/artifacts/processed/syniol_moderate_noise/traces.csv"
+cache_traces_path: "experiments/behavior_log/artifacts/processed/syniol_moderate_noise/cache/traces_train.csv"
+prefer_split_cache: true
+cache_split: "train"
+
+output_dir: "experiments/behavior_log/artifacts/runs/syniol_moderate_noise/ts2vec_style_trace"
+token_vocab_file: "token_vocab.json"
+token_stats_file: "token_stats.json"
+training_plan_file: "training_plan.json"
+
+min_token_count: 1
+batch_size: 64
+learning_rate: 0.0005
+weight_decay: 0.0001
+max_epochs: 80
+hidden_dim: 128
+projection_dim: 64
+dropout: 0.1
+pooling_mode: "mean"

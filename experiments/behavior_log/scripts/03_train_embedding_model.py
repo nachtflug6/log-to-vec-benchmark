@@ -73,9 +73,10 @@ def main() -> None:
     config_name = sys.argv[1] if len(sys.argv) > 1 else "hdfs_small_ts2vec"
     cfg = load_yaml(_resolve_config(config_name))
     dataset_type = str(cfg["dataset_type"]).lower()
-    if dataset_type != "hdfs":
+    if dataset_type not in {"hdfs", "behavior_subprocess"}:
         raise NotImplementedError(
-            f"Stage 03 currently only implements dataset_type='hdfs'. Got {cfg['dataset_type']!r}."
+            "Stage 03 currently implements dataset_type in "
+            f"{{'hdfs', 'behavior_subprocess'}}. Got {cfg['dataset_type']!r}."
         )
 
     traces_path, source_mode = _pick_trace_input(cfg)

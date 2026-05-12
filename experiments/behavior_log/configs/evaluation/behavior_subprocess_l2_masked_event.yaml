@@ -1,0 +1,14 @@
+dataset_type: "behavior_subprocess"
+dataset_name: "behavior_subprocess"
+method_name: "l2_masked_event"
+embedding_file: "../dataset/processed/model_ready/subprocess/embeddings/l2_masked_event/embeddings.npz"
+metadata_path: "../dataset/processed/subprocess_sequences.jsonl"
+output_dir: "../dataset/processed/model_ready/subprocess/evaluation/l2_masked_event"
+metrics_file: "metrics.json"
+artifacts_file: "evaluation_artifacts.npz"
+logistic_max_iter: 2000
+logistic_class_weight: "balanced"
+standardize_probe_features: true
+retrieval_ks: [5, 10]
+distance_gap_max_samples: 1000
+random_state: 0
